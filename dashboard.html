@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Writer | Dashboard</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-header {
+      background: linear-gradient(135deg, #0a1f12, #0f2d1a);
+      padding: 16px 24px;
+      text-align: center;
+      color: white;
+    }
+    .app-header .brand {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+    .app-header h1 {
+      font-size: 24px;
+      margin-top: 4px;
+    }
+    .app-footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      color: #475569;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
+    .dashboard-container {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .user-info {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .user-details h3 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .user-details p {
+      color: #475569;
+      font-size: 14px;
+    }
+    .logout-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .upgrade-btn {
+      background: #0d9488;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 12px;
+    }
+    .placeholder-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .placeholder-card h2 {
+      font-size: 22px;
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+    .coming-soon {
+      background: #0d9488;
+      color: white;
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+  <!-- Paystack Inline JS -->
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div class="app-header">
+    <div class="brand">TeaJay Konsult Ltd.</div>
+    <h1>📄 SEO Writer</h1>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="user-info" id="userInfo">
+      <div class="user-details">
+        <h3>Welcome, <span id="userEmail">Loading...</span></h3>
+        <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
+      </div>
+      <div>
+        <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
+        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="placeholder-card">
+      <h2>✨ AI Content Generation & SEO Analysis</h2>
+      <p>Our powerful SEO writer is almost ready. You'll soon be able to generate articles, meta tags, keyword planners, and get real‑time SEO scores.</p>
+      <div class="coming-soon">🚀 Coming Soon – Phase 2</div>
+    </div>
+  </div>
+
+  <div class="app-footer">
+    © 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
+      authDomain: "seo-writer-teajay.firebaseapp.com",
+      projectId: "seo-writer-teajay",
+      storageBucket: "seo-writer-teajay.firebasestorage.app",
+      messagingSenderId: "74159728277",
+      appId: "1:74159728277:web:f0ac81682c20ce67fd1d9c",
+      measurementId: "G-L26ZTRD6L8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Paystack public key (test mode)
+    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('userEmail').textContent = user.email;
+        // In a later phase, fetch plan and usage from Firestore
+      } else {
+        window.location.href = '/index.html';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await auth.signOut();
+      window.location.href = '/index.html';
+    });
+
+    // Upgrade button – opens Paystack modal
+    document.getElementById('upgradeBtn').addEventListener('click', () => {
+      if (!currentUser) return;
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: currentUser.email,
+        amount: 1000 * 100, // ₦1000 in kobo (Pro plan)
+        currency: 'NGN',
+        metadata: {
+          userId: currentUser.uid,
+          plan: 'pro'
+        },
+        onSuccess: (transaction) => {
+          alert(`Payment successful! Reference: ${transaction.reference}`);
+          // In a real implementation, we would call a verification endpoint
+          // and then update Firestore. The webhook will handle it automatically.
+        },
+        onCancel: () => {
+          alert('Payment cancelled.');
+        }
+      });
+    });
+  </script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+    }
+  </script>
+</body>
+</html>
