@@ -1,8 +1,27 @@
 // api/generate-seo.js
 const https = require('https');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+
+// Initialize Firebase Admin SDK using the JSON from environment variable
+const adminJson = process.env.FIREBASE_ADMIN_JSON;
+if (!adminJson) {
+  console.error('FIREBASE_ADMIN_JSON environment variable not set');
+  // We'll still continue but Firestore operations will fail
+} else {
+  try {
+    const serviceAccount = JSON.parse(adminJson);
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+  } catch (err) {
+    console.error('Failed to parse FIREBASE_ADMIN_JSON:', err.message);
+  }
+}
+const db = getFirestore();
 
 module.exports = async function handler(req, res) {
-  // Only POST
+  // Only POST allowed
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -14,10 +33,10 @@ module.exports = async function handler(req, res) {
   }
   const idToken = authHeader.split('Bearer ')[1];
 
-  // Verify token with Firebase
+  // Verify token with Firebase REST API
   const firebaseApiKey = process.env.FIREBASE_API_KEY;
   if (!firebaseApiKey) {
-    return res.status(500).json({ error: 'Server configuration error' });
+    return res.status(500).json({ error: 'FIREBASE_API_KEY not configured' });
   }
 
   let userId, email;
@@ -77,10 +96,56 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Topic and keywords are required' });
   }
 
-  // Map length to approximate word count
-  const wordCount = length === 'short' ? 300 : length === 'medium' ? 800 : 1500;
+  // --- Firestore: Get or create user document ---
+  let userData;
+  try {
+    const userRef = db.collection('users').doc(userId);
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      // Create new user document with default free plan
+      const now = new Date().toISOString();
+      await userRef.set({
+        plan: 'free',
+        generationsUsedThisMonth: 0,
+        monthlyResetDate: now,
+        createdAt: now,
+        email: email
+      });
+      userData = {
+        plan: 'free',
+        generationsUsedThisMonth: 0,
+        monthlyResetDate: now
+      };
+    } else {
+      userData = doc.data();
+    }
 
-  // Build system prompt
+    // Check monthly reset
+    const lastReset = new Date(userData.monthlyResetDate);
+    const now = new Date();
+    if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
+      // Reset counter for new month
+      await userRef.update({
+        generationsUsedThisMonth: 0,
+        monthlyResetDate: now.toISOString()
+      });
+      userData.generationsUsedThisMonth = 0;
+      userData.monthlyResetDate = now.toISOString();
+    }
+
+    // Check usage limit
+    const limit = userData.plan === 'pro' ? Infinity : 8;
+    if (userData.generationsUsedThisMonth >= limit) {
+      return res.status(429).json({ error: 'Monthly generation limit reached. Upgrade to Pro for unlimited access.' });
+    }
+  } catch (err) {
+    console.error('Firestore error:', err.message);
+    // Fallback: allow generation if Firestore fails? Better to deny to prevent abuse.
+    return res.status(500).json({ error: 'Failed to verify usage limits' });
+  }
+
+  // --- Call Groq API for content generation ---
+  const wordCount = length === 'short' ? 300 : length === 'medium' ? 800 : 1500;
   const systemPrompt = `You are an expert SEO content writer. Your task is to generate a high-quality, SEO-optimized article based on the user's input.
 
 Topic: ${topic}
@@ -117,6 +182,7 @@ The SEO score should be a number from 0 to 100 based on keyword usage, readabili
     response_format: { type: 'json_object' }
   });
 
+  let generatedContent;
   try {
     const groqResponse = await new Promise((resolve, reject) => {
       const options = {
@@ -148,30 +214,42 @@ The SEO score should be a number from 0 to 100 based on keyword usage, readabili
       request.write(payload);
       request.end();
     });
-
     const content = groqResponse.choices[0].message.content;
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      console.error('Groq returned invalid JSON:', content);
-      return res.status(500).json({ error: 'Invalid response from AI' });
-    }
-
-    // Ensure all fields exist
-    const result = {
-      article: parsed.article || '<p>Failed to generate article.</p>',
-      metaTitle: parsed.metaTitle || `${topic} - SEO Writer`,
-      metaDescription: parsed.metaDescription || `Learn about ${topic} with our SEO-optimized content.`,
-      suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : [],
-      seoScore: typeof parsed.seoScore === 'number' ? parsed.seoScore : 70
-    };
-
-    // Optionally store generation in Firestore (we'll implement later)
-    // For now, just return the result
-    res.status(200).json(result);
+    generatedContent = JSON.parse(content);
   } catch (err) {
     console.error('Groq generation error:', err.message);
-    res.status(500).json({ error: 'AI generation failed' });
+    return res.status(500).json({ error: 'AI generation failed' });
   }
+
+  // Prepare result object
+  const result = {
+    article: generatedContent.article || '<p>Failed to generate article.</p>',
+    metaTitle: generatedContent.metaTitle || `${topic} - SEO Writer`,
+    metaDescription: generatedContent.metaDescription || `Learn about ${topic} with our SEO-optimized content.`,
+    suggestedTags: Array.isArray(generatedContent.suggestedTags) ? generatedContent.suggestedTags : [],
+    seoScore: typeof generatedContent.seoScore === 'number' ? generatedContent.seoScore : 70
+  };
+
+  // --- Save generation to Firestore ---
+  try {
+    const userRef = db.collection('users').doc(userId);
+    const generationRef = userRef.collection('generations').doc();
+    await generationRef.set({
+      topic,
+      keywords,
+      tone,
+      length,
+      generatedAt: new Date().toISOString(),
+      result: result
+    });
+    // Increment usage counter
+    await userRef.update({
+      generationsUsedThisMonth: userData.generationsUsedThisMonth + 1
+    });
+  } catch (err) {
+    console.error('Failed to save generation to Firestore:', err.message);
+    // We still return the result, but the generation won't be stored.
+  }
+
+  res.status(200).json(result);
 };
