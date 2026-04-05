@@ -200,9 +200,31 @@
         transform: translateX(0);
       }
     }
+    /* FAB button */
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(13,148,136,0.4);
+      cursor: pointer;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
+  <!-- FAB Install Button -->
+  <button class="fab" id="installBtn">📲 Install App</button>
+
   <div class="app-header">
     <div class="brand">TeaJay Konsult Ltd.</div>
     <h1>📄 SEO Writer</h1>
@@ -339,6 +361,23 @@
       } catch (err) {
         signupMessage.textContent = err.message;
         signupMessage.classList.add('error');
+      }
+    });
+
+    // PWA Install (FAB)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBtn = document.getElementById('installBtn');
+      if (installBtn) installBtn.style.display = 'flex';
+    });
+    document.getElementById('installBtn')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
       }
     });
   </script>

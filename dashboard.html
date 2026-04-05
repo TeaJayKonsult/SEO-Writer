@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Writer | Dashboard</title>
+  <!-- Manifest for PWA -->
   <link rel="manifest" href="manifest.json">
   <style>
     * {
@@ -109,6 +110,25 @@
       font-size: 13px;
       font-weight: 600;
     }
+    /* FAB button */
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(13,148,136,0.4);
+      cursor: pointer;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
   </style>
   <!-- Paystack Inline JS -->
   <script src="https://js.paystack.co/v2/inline.js"></script>
@@ -117,6 +137,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
+  <!-- FAB Install Button -->
+  <button class="fab" id="installBtn">📲 Install App</button>
+
   <div class="app-header">
     <div class="brand">TeaJay Konsult Ltd.</div>
     <h1>📄 SEO Writer</h1>
@@ -194,13 +217,29 @@
         },
         onSuccess: (transaction) => {
           alert(`Payment successful! Reference: ${transaction.reference}`);
-          // In a real implementation, we would call a verification endpoint
-          // and then update Firestore. The webhook will handle it automatically.
+          // The webhook will update Firestore; we can later refresh the page or fetch new plan status.
         },
         onCancel: () => {
           alert('Payment cancelled.');
         }
       });
+    });
+
+    // PWA Install (FAB)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBtn = document.getElementById('installBtn');
+      if (installBtn) installBtn.style.display = 'flex';
+    });
+    document.getElementById('installBtn')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
+      }
     });
   </script>
 
