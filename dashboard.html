@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Writer | Dashboard</title>
   <link rel="manifest" href="manifest.json">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,14 +19,28 @@
       display: flex;
       flex-direction: column;
     }
+    /* Header & Footer */
     .app-header {
       background: linear-gradient(135deg, #0a1f12, #0f2d1a);
       padding: 16px 24px;
       text-align: center;
       color: white;
+      position: relative;
     }
     .app-header .brand { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
     .app-header h1 { font-size: 24px; margin-top: 4px; }
+    .menu-toggle {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: none;
+    }
     .app-footer {
       text-align: center;
       padding: 16px;
@@ -30,12 +49,62 @@
       border-top: 1px solid #e2e8f0;
       background: white;
     }
-    .dashboard-container {
+    /* Main layout with sidebar */
+    .app-wrapper {
+      display: flex;
       flex: 1;
-      max-width: 1200px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 32px 24px;
+    }
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 700;
+    }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .history-item {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #e2e8f0;
+    }
+    .history-item:hover {
+      background: #f1f5f9;
+      border-color: #0d9488;
+    }
+    .history-item.active {
+      background: #e6f7f5;
+      border-color: #0d9488;
+    }
+    .history-title {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-date {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
     }
     .user-info {
       background: white;
@@ -62,15 +131,14 @@
     }
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; }
-    input, select, textarea {
+    input, select {
       width: 100%;
       padding: 12px 14px;
       border: 1.5px solid #e2e8f0;
       border-radius: 16px;
       font-size: 15px;
-      transition: all 0.2s;
     }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    input:focus, select:focus { outline: none; border-color: #0d9488; }
     button[type="submit"] {
       background: linear-gradient(135deg, #0d9488, #0f766e);
       color: white;
@@ -79,9 +147,7 @@
       border-radius: 40px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,148,136,0.4); }
     .loading { display: none; text-align: center; margin: 20px 0; }
     .meta-box { background: #f1f5f9; padding: 16px; border-radius: 16px; margin-bottom: 20px; }
     .meta-title { font-size: 18px; font-weight: 700; color: #0f172a; }
@@ -107,79 +173,99 @@
       align-items: center;
       gap: 8px;
     }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1000;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .main-content {
+        padding: 16px;
+      }
+    }
   </style>
-  <script src="https://js.paystack.co/v2/inline.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
   <button class="fab" id="installBtn">📲 Install App</button>
-
   <div class="app-header">
+    <button class="menu-toggle" id="menuToggle">☰</button>
     <div class="brand">TeaJay Konsult Ltd.</div>
     <h1>📄 SEO Writer</h1>
   </div>
-
-  <div class="dashboard-container">
-    <div class="user-info" id="userInfo">
-      <div class="user-details">
-        <h3>Welcome, <span id="userEmail">Loading...</span></h3>
-        <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
-      </div>
-      <div>
-        <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
-        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+  <div class="app-wrapper">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">📜 Generation History</div>
+      <div class="history-list" id="historyList">
+        <div style="text-align:center; padding:20px; color:#64748b;">Loading history...</div>
       </div>
     </div>
-
-    <div class="form-card">
-      <h2 style="margin-bottom: 20px;">✍️ Generate SEO Article</h2>
-      <form id="generateForm">
-        <div class="form-group">
-          <label>Topic / Title</label>
-          <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
+    <div class="main-content">
+      <div class="user-info" id="userInfo">
+        <div class="user-details">
+          <h3>Welcome, <span id="userEmail">Loading...</span></h3>
+          <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
         </div>
-        <div class="form-group">
-          <label>Target Keywords (comma separated)</label>
-          <input type="text" id="keywords" placeholder="freelance, business, startup" required>
+        <div>
+          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
+          <button class="logout-btn" id="logoutBtn">Sign Out</button>
         </div>
-        <div class="form-group">
-          <label>Tone</label>
-          <select id="tone">
-            <option value="professional">Professional</option>
-            <option value="casual">Casual</option>
-            <option value="persuasive">Persuasive</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Length</label>
-          <select id="length">
-            <option value="short">Short (~300 words)</option>
-            <option value="medium" selected>Medium (~800 words)</option>
-            <option value="long">Long (~1500 words)</option>
-          </select>
-        </div>
-        <button type="submit">🚀 Generate Article</button>
-      </form>
-      <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
-    </div>
-
-    <div class="result-card" id="resultCard" style="display:none;">
-      <h2>📝 Generated Content</h2>
-      <div class="meta-box">
-        <div class="meta-title" id="metaTitle"></div>
-        <div class="meta-desc" id="metaDesc"></div>
-        <div class="tags" id="tagsContainer"></div>
-        <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
       </div>
-      <div id="articleContent"></div>
+      <div class="form-card">
+        <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
+        <form id="generateForm">
+          <div class="form-group">
+            <label>Topic / Title</label>
+            <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
+          </div>
+          <div class="form-group">
+            <label>Target Keywords (comma separated)</label>
+            <input type="text" id="keywords" placeholder="freelance, business, startup" required>
+          </div>
+          <div class="form-group">
+            <label>Tone</label>
+            <select id="tone">
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="persuasive">Persuasive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Length</label>
+            <select id="length">
+              <option value="short">Short (~300 words)</option>
+              <option value="medium" selected>Medium (~800 words)</option>
+              <option value="long">Long (~1500 words)</option>
+            </select>
+          </div>
+          <button type="submit">🚀 Generate Article</button>
+        </form>
+        <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
+      </div>
+      <div class="result-card" id="resultCard" style="display:none;">
+        <h2>📝 Generated Content</h2>
+        <div class="meta-box">
+          <div class="meta-title" id="metaTitle"></div>
+          <div class="meta-desc" id="metaDesc"></div>
+          <div class="tags" id="tagsContainer"></div>
+          <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
+        </div>
+        <div id="articleContent"></div>
+      </div>
     </div>
   </div>
-
   <div class="app-footer">
     © 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult
   </div>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
@@ -192,19 +278,76 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
     let currentUser = null;
+    let currentGenerations = [];
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
         document.getElementById('userEmail').textContent = user.email;
-        // Later: fetch usage from Firestore
+        // Fetch user plan and usage from Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
+          document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
+          document.getElementById('usageLimit').textContent = data.plan === 'pro' ? '∞' : '8';
+        }
+        loadHistory();
       } else {
         window.location.href = '/index.html';
       }
     });
+
+    async function loadHistory() {
+      if (!currentUser) return;
+      const historyDiv = document.getElementById('historyList');
+      try {
+        const snapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
+          .orderBy('generatedAt', 'desc').get();
+        currentGenerations = [];
+        snapshot.forEach(doc => {
+          currentGenerations.push({ id: doc.id, ...doc.data() });
+        });
+        if (currentGenerations.length === 0) {
+          historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No generations yet. Create your first article!</div>';
+          return;
+        }
+        historyDiv.innerHTML = currentGenerations.map(gen => `
+          <div class="history-item" data-id="${gen.id}">
+            <div class="history-title">${escapeHtml(gen.topic.substring(0, 50))}</div>
+            <div class="history-date">${new Date(gen.generatedAt).toLocaleDateString()}</div>
+          </div>
+        `).join('');
+        // attach click handlers
+        document.querySelectorAll('.history-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const id = el.getAttribute('data-id');
+            const gen = currentGenerations.find(g => g.id === id);
+            if (gen) displayGeneration(gen);
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load history:', err);
+        historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Error loading history</div>';
+      }
+    }
+
+    function displayGeneration(gen) {
+      const result = gen.result;
+      document.getElementById('metaTitle').textContent = result.metaTitle;
+      document.getElementById('metaDesc').textContent = result.metaDescription;
+      document.getElementById('seoScore').textContent = result.seoScore;
+      const tagsContainer = document.getElementById('tagsContainer');
+      tagsContainer.innerHTML = (result.suggestedTags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+      document.getElementById('articleContent').innerHTML = result.article;
+      document.getElementById('resultCard').style.display = 'block';
+      // scroll to result
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+    }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await auth.signOut();
@@ -232,17 +375,13 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentUser) return;
-
       const topic = document.getElementById('topic').value.trim();
       const keywords = document.getElementById('keywords').value.trim();
       const tone = document.getElementById('tone').value;
       const length = document.getElementById('length').value;
-
       if (!topic || !keywords) return;
-
       loadingDiv.style.display = 'block';
       resultCard.style.display = 'none';
-
       try {
         const idToken = await currentUser.getIdToken();
         const res = await fetch('/api/generate-seo', {
@@ -255,15 +394,22 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Generation failed');
-
+        // Display the new result
         document.getElementById('metaTitle').textContent = data.metaTitle;
         document.getElementById('metaDesc').textContent = data.metaDescription;
         document.getElementById('seoScore').textContent = data.seoScore;
         const tagsContainer = document.getElementById('tagsContainer');
         tagsContainer.innerHTML = data.suggestedTags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
         document.getElementById('articleContent').innerHTML = data.article;
-
         resultCard.style.display = 'block';
+        // Reload history to include the new generation
+        loadHistory();
+        // Refresh usage counters
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          document.getElementById('usageCount').textContent = userData.generationsUsedThisMonth || 0;
+        }
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -280,6 +426,20 @@
       });
     }
 
+    // Sidebar toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+    // Close sidebar when clicking outside on mobile (optional)
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuToggle) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+    // PWA Install
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -295,7 +455,6 @@
         document.getElementById('installBtn').style.display = 'none';
       }
     });
-
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
     }
