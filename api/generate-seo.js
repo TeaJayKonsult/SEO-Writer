@@ -7,7 +7,6 @@ const { getFirestore } = require('firebase-admin/firestore');
 const adminJson = process.env.FIREBASE_ADMIN_JSON;
 if (!adminJson) {
   console.error('FIREBASE_ADMIN_JSON environment variable not set');
-  // We'll still continue but Firestore operations will fail
 } else {
   try {
     const serviceAccount = JSON.parse(adminJson);
@@ -102,7 +101,6 @@ module.exports = async function handler(req, res) {
     const userRef = db.collection('users').doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) {
-      // Create new user document with default free plan
       const now = new Date().toISOString();
       await userRef.set({
         plan: 'free',
@@ -124,7 +122,6 @@ module.exports = async function handler(req, res) {
     const lastReset = new Date(userData.monthlyResetDate);
     const now = new Date();
     if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-      // Reset counter for new month
       await userRef.update({
         generationsUsedThisMonth: 0,
         monthlyResetDate: now.toISOString()
@@ -133,19 +130,27 @@ module.exports = async function handler(req, res) {
       userData.monthlyResetDate = now.toISOString();
     }
 
-    // Check usage limit
-    const limit = userData.plan === 'pro' ? Infinity : 8;
+    // Determine limit based on plan
+    let limit;
+    let plan = userData.plan || 'free';
+    if (plan === 'pro') limit = 25;
+    else if (plan === 'starter') limit = 15;
+    else limit = 8;
+
     if (userData.generationsUsedThisMonth >= limit) {
-      return res.status(429).json({ error: 'Monthly generation limit reached. Upgrade to Pro for unlimited access.' });
+      return res.status(429).json({ error: `Monthly generation limit reached (${limit} per month). Upgrade to Starter (15) or Pro (25) for more.` });
     }
   } catch (err) {
     console.error('Firestore error:', err.message);
-    // Fallback: allow generation if Firestore fails? Better to deny to prevent abuse.
     return res.status(500).json({ error: 'Failed to verify usage limits' });
   }
 
   // --- Call Groq API for content generation ---
-  const wordCount = length === 'short' ? 300 : length === 'medium' ? 800 : 1500;
+  let wordCount;
+  if (length === 'short') wordCount = 500;
+  else if (length === 'medium') wordCount = 1000;
+  else wordCount = 1800;
+
   const systemPrompt = `You are an expert SEO content writer. Your task is to generate a high-quality, SEO-optimized article based on the user's input.
 
 Topic: ${topic}
@@ -221,7 +226,6 @@ The SEO score should be a number from 0 to 100 based on keyword usage, readabili
     return res.status(500).json({ error: 'AI generation failed' });
   }
 
-  // Prepare result object
   const result = {
     article: generatedContent.article || '<p>Failed to generate article.</p>',
     metaTitle: generatedContent.metaTitle || `${topic} - SEO Writer`,
@@ -242,13 +246,11 @@ The SEO score should be a number from 0 to 100 based on keyword usage, readabili
       generatedAt: new Date().toISOString(),
       result: result
     });
-    // Increment usage counter
     await userRef.update({
       generationsUsedThisMonth: userData.generationsUsedThisMonth + 1
     });
   } catch (err) {
     console.error('Failed to save generation to Firestore:', err.message);
-    // We still return the result, but the generation won't be stored.
   }
 
   res.status(200).json(result);
