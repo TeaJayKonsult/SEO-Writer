@@ -4,14 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Writer | Dashboard</title>
-  <!-- Manifest for PWA -->
   <link rel="manifest" href="manifest.json">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       background: #f8fafc;
@@ -25,16 +20,8 @@
       text-align: center;
       color: white;
     }
-    .app-header .brand {
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.7);
-    }
-    .app-header h1 {
-      font-size: 24px;
-      margin-top: 4px;
-    }
+    .app-header .brand { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+    .app-header h1 { font-size: 24px; margin-top: 4px; }
     .app-footer {
       text-align: center;
       padding: 16px;
@@ -62,55 +49,46 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-    .user-details h3 {
-      font-size: 18px;
-      margin-bottom: 4px;
+    .user-details h3 { font-size: 18px; margin-bottom: 4px; }
+    .user-details p { color: #475569; font-size: 14px; }
+    .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+    .upgrade-btn { background: #0d9488; color: white; border: none; padding: 10px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; margin-left: 12px; }
+    .form-card, .result-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
     }
-    .user-details p {
-      color: #475569;
-      font-size: 14px;
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 15px;
+      transition: all 0.2s;
     }
-    .logout-btn {
-      background: #ef4444;
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    button[type="submit"] {
+      background: linear-gradient(135deg, #0d9488, #0f766e);
       color: white;
       border: none;
-      padding: 8px 20px;
-      border-radius: 40px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .upgrade-btn {
-      background: #0d9488;
-      color: white;
-      border: none;
-      padding: 10px 24px;
+      padding: 12px 24px;
       border-radius: 40px;
       font-weight: 700;
       cursor: pointer;
-      margin-left: 12px;
+      transition: all 0.2s;
     }
-    .placeholder-card {
-      background: white;
-      border-radius: 24px;
-      padding: 40px;
-      text-align: center;
-      border: 1px solid #e2e8f0;
-    }
-    .placeholder-card h2 {
-      font-size: 22px;
-      margin-bottom: 12px;
-      color: #0f172a;
-    }
-    .coming-soon {
-      background: #0d9488;
-      color: white;
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 50px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    /* FAB button */
+    button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,148,136,0.4); }
+    .loading { display: none; text-align: center; margin: 20px 0; }
+    .meta-box { background: #f1f5f9; padding: 16px; border-radius: 16px; margin-bottom: 20px; }
+    .meta-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+    .meta-desc { color: #475569; margin-top: 4px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
+    .score { font-size: 24px; font-weight: 800; color: #0d9488; }
     .fab {
       position: fixed;
       bottom: 20px;
@@ -130,14 +108,11 @@
       gap: 8px;
     }
   </style>
-  <!-- Paystack Inline JS -->
   <script src="https://js.paystack.co/v2/inline.js"></script>
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <!-- FAB Install Button -->
   <button class="fab" id="installBtn">📲 Install App</button>
 
   <div class="app-header">
@@ -157,10 +132,47 @@
       </div>
     </div>
 
-    <div class="placeholder-card">
-      <h2>✨ AI Content Generation & SEO Analysis</h2>
-      <p>Our powerful SEO writer is almost ready. You'll soon be able to generate articles, meta tags, keyword planners, and get real‑time SEO scores.</p>
-      <div class="coming-soon">🚀 Coming Soon – Phase 2</div>
+    <div class="form-card">
+      <h2 style="margin-bottom: 20px;">✍️ Generate SEO Article</h2>
+      <form id="generateForm">
+        <div class="form-group">
+          <label>Topic / Title</label>
+          <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
+        </div>
+        <div class="form-group">
+          <label>Target Keywords (comma separated)</label>
+          <input type="text" id="keywords" placeholder="freelance, business, startup" required>
+        </div>
+        <div class="form-group">
+          <label>Tone</label>
+          <select id="tone">
+            <option value="professional">Professional</option>
+            <option value="casual">Casual</option>
+            <option value="persuasive">Persuasive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Length</label>
+          <select id="length">
+            <option value="short">Short (~300 words)</option>
+            <option value="medium" selected>Medium (~800 words)</option>
+            <option value="long">Long (~1500 words)</option>
+          </select>
+        </div>
+        <button type="submit">🚀 Generate Article</button>
+      </form>
+      <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
+    </div>
+
+    <div class="result-card" id="resultCard" style="display:none;">
+      <h2>📝 Generated Content</h2>
+      <div class="meta-box">
+        <div class="meta-title" id="metaTitle"></div>
+        <div class="meta-desc" id="metaDesc"></div>
+        <div class="tags" id="tagsContainer"></div>
+        <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
+      </div>
+      <div id="articleContent"></div>
     </div>
   </div>
 
@@ -169,7 +181,6 @@
   </div>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -182,16 +193,14 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Paystack public key (test mode)
-    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
-
+    const PAYSTACK_PUBLIC_KEY = "pk_test_..."; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
     let currentUser = null;
 
     auth.onAuthStateChanged((user) => {
       if (user) {
         currentUser = user;
         document.getElementById('userEmail').textContent = user.email;
-        // In a later phase, fetch plan and usage from Firestore
+        // Later: fetch usage from Firestore
       } else {
         window.location.href = '/index.html';
       }
@@ -202,30 +211,75 @@
       window.location.href = '/index.html';
     });
 
-    // Upgrade button – opens Paystack modal
     document.getElementById('upgradeBtn').addEventListener('click', () => {
       if (!currentUser) return;
       const paystack = new PaystackPop();
       paystack.newTransaction({
         key: PAYSTACK_PUBLIC_KEY,
         email: currentUser.email,
-        amount: 1000 * 100, // ₦1000 in kobo (Pro plan)
+        amount: 1000 * 100,
         currency: 'NGN',
-        metadata: {
-          userId: currentUser.uid,
-          plan: 'pro'
-        },
-        onSuccess: (transaction) => {
-          alert(`Payment successful! Reference: ${transaction.reference}`);
-          // The webhook will update Firestore; we can later refresh the page or fetch new plan status.
-        },
-        onCancel: () => {
-          alert('Payment cancelled.');
-        }
+        metadata: { userId: currentUser.uid, plan: 'pro' },
+        onSuccess: (transaction) => alert(`Payment successful! Reference: ${transaction.reference}`),
+        onCancel: () => alert('Payment cancelled.')
       });
     });
 
-    // PWA Install (FAB)
+    const form = document.getElementById('generateForm');
+    const loadingDiv = document.getElementById('loading');
+    const resultCard = document.getElementById('resultCard');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const topic = document.getElementById('topic').value.trim();
+      const keywords = document.getElementById('keywords').value.trim();
+      const tone = document.getElementById('tone').value;
+      const length = document.getElementById('length').value;
+
+      if (!topic || !keywords) return;
+
+      loadingDiv.style.display = 'block';
+      resultCard.style.display = 'none';
+
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/generate-seo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ topic, keywords, tone, length })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Generation failed');
+
+        document.getElementById('metaTitle').textContent = data.metaTitle;
+        document.getElementById('metaDesc').textContent = data.metaDescription;
+        document.getElementById('seoScore').textContent = data.seoScore;
+        const tagsContainer = document.getElementById('tagsContainer');
+        tagsContainer.innerHTML = data.suggestedTags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+        document.getElementById('articleContent').innerHTML = data.article;
+
+        resultCard.style.display = 'block';
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    });
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -241,10 +295,7 @@
         document.getElementById('installBtn').style.display = 'none';
       }
     });
-  </script>
 
-  <!-- Service Worker Registration -->
-  <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
     }
