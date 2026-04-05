@@ -120,8 +120,18 @@
     }
     .user-details h3 { font-size: 18px; margin-bottom: 4px; }
     .user-details p { color: #475569; font-size: 14px; }
+    .upgrade-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .upgrade-btn-starter, .upgrade-btn-pro {
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .upgrade-btn-starter { background: #f59e0b; }
+    .upgrade-btn-pro { background: #0d9488; }
     .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-    .upgrade-btn { background: #0d9488; color: white; border: none; padding: 10px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; margin-left: 12px; }
     .form-card, .result-card {
       background: white;
       border-radius: 24px;
@@ -155,6 +165,19 @@
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
     .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
     .score { font-size: 24px; font-weight: 800; color: #0d9488; }
+    .copy-btn {
+      background: #0d9488;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
     .fab {
       position: fixed;
       bottom: 20px;
@@ -216,8 +239,11 @@
           <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
         </div>
         <div>
-          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
-          <button class="logout-btn" id="logoutBtn">Sign Out</button>
+          <div class="upgrade-group">
+            <button class="upgrade-btn-starter" id="upgradeStarterBtn">Upgrade to Starter (₦1000/mo)</button>
+            <button class="upgrade-btn-pro" id="upgradeProBtn">Upgrade to Pro (₦1500/mo)</button>
+            <button class="logout-btn" id="logoutBtn">Sign Out</button>
+          </div>
         </div>
       </div>
       <div class="form-card">
@@ -242,9 +268,9 @@
           <div class="form-group">
             <label>Length</label>
             <select id="length">
-              <option value="short">Short (~300 words)</option>
-              <option value="medium" selected>Medium (~800 words)</option>
-              <option value="long">Long (~1500 words)</option>
+              <option value="short">Short (500 words)</option>
+              <option value="medium" selected>Medium (800–1200 words)</option>
+              <option value="long">Long (1500+ words)</option>
             </select>
           </div>
           <button type="submit">🚀 Generate Article</button>
@@ -260,6 +286,7 @@
           <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
         </div>
         <div id="articleContent"></div>
+        <button class="copy-btn" id="copyBtn">📋 Copy Article (Plain Text)</button>
       </div>
     </div>
   </div>
@@ -292,9 +319,14 @@
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           const data = userDoc.data();
-          document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
+          const plan = data.plan || 'free';
+          let planLabel = 'Free';
+          let limit = 8;
+          if (plan === 'starter') { planLabel = 'Starter'; limit = 15; }
+          else if (plan === 'pro') { planLabel = 'Pro'; limit = 25; }
+          document.getElementById('userPlan').textContent = planLabel;
           document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
-          document.getElementById('usageLimit').textContent = data.plan === 'pro' ? '∞' : '8';
+          document.getElementById('usageLimit').textContent = limit;
         }
         loadHistory();
       } else {
@@ -345,7 +377,6 @@
       tagsContainer.innerHTML = (result.suggestedTags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
       document.getElementById('articleContent').innerHTML = result.article;
       document.getElementById('resultCard').style.display = 'block';
-      // scroll to result
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -354,18 +385,39 @@
       window.location.href = '/index.html';
     });
 
-    document.getElementById('upgradeBtn').addEventListener('click', () => {
+    function upgrade(plan, amount) {
       if (!currentUser) return;
       const paystack = new PaystackPop();
       paystack.newTransaction({
         key: PAYSTACK_PUBLIC_KEY,
         email: currentUser.email,
-        amount: 1000 * 100,
+        amount: amount * 100, // convert to kobo
         currency: 'NGN',
-        metadata: { userId: currentUser.uid, plan: 'pro' },
-        onSuccess: (transaction) => alert(`Payment successful! Reference: ${transaction.reference}`),
+        metadata: { userId: currentUser.uid, plan: plan },
+        onSuccess: (transaction) => {
+          alert(`Payment successful! Reference: ${transaction.reference}. Your plan will be upgraded shortly.`);
+          // Reload user data to reflect new plan (webhook will update Firestore)
+          setTimeout(() => location.reload(), 3000);
+        },
         onCancel: () => alert('Payment cancelled.')
       });
+    }
+
+    document.getElementById('upgradeStarterBtn').addEventListener('click', () => upgrade('starter', 1000));
+    document.getElementById('upgradeProBtn').addEventListener('click', () => upgrade('pro', 1500));
+
+    // Copy button logic
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const articleHtml = document.getElementById('articleContent').innerHTML;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = articleHtml;
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
+      navigator.clipboard.writeText(plainText).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+      }).catch(() => alert('Failed to copy.'));
     });
 
     const form = document.getElementById('generateForm');
@@ -394,7 +446,6 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Generation failed');
-        // Display the new result
         document.getElementById('metaTitle').textContent = data.metaTitle;
         document.getElementById('metaDesc').textContent = data.metaDescription;
         document.getElementById('seoScore').textContent = data.seoScore;
@@ -402,9 +453,7 @@
         tagsContainer.innerHTML = data.suggestedTags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
         document.getElementById('articleContent').innerHTML = data.article;
         resultCard.style.display = 'block';
-        // Reload history to include the new generation
         loadHistory();
-        // Refresh usage counters
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         if (userDoc.exists) {
           const userData = userDoc.data();
@@ -432,7 +481,6 @@
     menuToggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
     });
-    // Close sidebar when clicking outside on mobile (optional)
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuToggle) {
         sidebar.classList.remove('open');
