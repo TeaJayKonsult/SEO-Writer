@@ -1,18 +1,16 @@
 // api/paystack-webhook.js
 const https = require('https');
+const crypto = require('crypto');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 
-// Initialize Firebase Admin SDK
 const adminJson = process.env.FIREBASE_ADMIN_JSON;
 if (!adminJson) {
   console.error('FIREBASE_ADMIN_JSON not set');
 } else {
   try {
     const serviceAccount = JSON.parse(adminJson);
-    initializeApp({
-      credential: cert(serviceAccount)
-    });
+    initializeApp({ credential: cert(serviceAccount) });
   } catch (err) {
     console.error('Failed to parse FIREBASE_ADMIN_JSON:', err.message);
   }
@@ -20,7 +18,6 @@ if (!adminJson) {
 const db = getFirestore();
 
 module.exports = async function handler(req, res) {
-  // Only POST allowed
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -37,16 +34,15 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'No signature header' });
   }
 
-  // Compute HMAC-SHA512 of the raw request body
-  const crypto = require('crypto');
-  const hash = crypto.createHmac('sha512', paystackSecret).update(JSON.stringify(req.body)).digest('hex');
+  const hash = crypto.createHmac('sha512', paystackSecret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
   if (hash !== signature) {
     console.error('Invalid signature');
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
   const event = req.body;
-  // Only care about successful charges
   if (event.event !== 'charge.success') {
     return res.status(200).json({ received: true });
   }
@@ -62,6 +58,14 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Missing metadata' });
   }
 
+  // --- IDEMPOTENCY: Check if this transaction was already processed ---
+  const processedRef = db.collection('processedTransactions').doc(transactionRef);
+  const processedDoc = await processedRef.get();
+  if (processedDoc.exists) {
+    console.log(`Duplicate webhook ignored for reference ${transactionRef}`);
+    return res.status(200).json({ received: true, alreadyProcessed: true });
+  }
+
   // 2. Verify transaction with Paystack API
   try {
     const verifyRes = await new Promise((resolve, reject) => {
@@ -69,9 +73,7 @@ module.exports = async function handler(req, res) {
         hostname: 'api.paystack.co',
         path: `/transaction/verify/${transactionRef}`,
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${paystackSecret}`
-        }
+        headers: { 'Authorization': `Bearer ${paystackSecret}` }
       };
       const request = https.request(options, (response) => {
         let raw = '';
@@ -88,16 +90,14 @@ module.exports = async function handler(req, res) {
             } else {
               reject(new Error('Transaction not successful'));
             }
-          } catch (e) {
-            reject(e);
-          }
+          } catch (e) { reject(e); }
         });
       });
       request.on('error', reject);
       request.end();
     });
 
-    // Check amount matches expected plan
+    // Check amount
     let expectedAmount;
     if (requestedPlan === 'starter') expectedAmount = 1000 * 100;
     else if (requestedPlan === 'pro') expectedAmount = 1500 * 100;
@@ -108,12 +108,21 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Amount mismatch' });
     }
 
-    // 3. Update Firestore user document
+    // 3. Update user's plan in Firestore
     const userRef = db.collection('users').doc(userId);
     await userRef.update({
       plan: requestedPlan,
       updatedAt: new Date().toISOString()
     });
+
+    // 4. Store transaction reference for idempotency
+    await processedRef.set({
+      userId,
+      plan: requestedPlan,
+      amount: verifyRes.amount,
+      processedAt: new Date().toISOString()
+    });
+
     console.log(`Updated user ${userId} to plan ${requestedPlan}`);
     res.status(200).json({ received: true });
   } catch (err) {
