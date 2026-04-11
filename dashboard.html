@@ -223,7 +223,7 @@
   </div>
 
   <script>
-    // ========== Firebase Config ==========
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -251,35 +251,38 @@
       });
     }
 
-    // ========== User Profile ==========
     async function loadUserProfile() {
       if (!currentUser) return;
-      const userDoc = await db.collection('users').doc(currentUser.uid).get();
-      if (userDoc.exists) {
-        const data = userDoc.data();
-        const displayName = data.displayName || currentUser.email.split('@')[0];
-        document.getElementById('userDisplayName').textContent = displayName;
-        if (data.photoURL) {
-          document.getElementById('profilePic').src = data.photoURL;
+      try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          const displayName = data.displayName || currentUser.email.split('@')[0];
+          document.getElementById('userDisplayName').textContent = displayName;
+          if (data.photoURL) {
+            document.getElementById('profilePic').src = data.photoURL;
+          } else {
+            document.getElementById('profilePic').src = 'https://via.placeholder.com/48';
+          }
+          const plan = data.plan || 'free';
+          let planLabel = 'Free', limit = 8;
+          if (plan === 'starter') { planLabel = 'Starter'; limit = 15; }
+          else if (plan === 'pro') { planLabel = 'Pro'; limit = 25; }
+          document.getElementById('userPlan').textContent = planLabel;
+          document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
+          document.getElementById('usageLimit').textContent = limit;
         } else {
-          document.getElementById('profilePic').src = 'https://via.placeholder.com/48';
+          await db.collection('users').doc(currentUser.uid).set({
+            email: currentUser.email,
+            plan: 'free',
+            generationsUsedThisMonth: 0,
+            monthlyResetDate: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+          }, { merge: true });
+          document.getElementById('userDisplayName').textContent = currentUser.email.split('@')[0];
         }
-        const plan = data.plan || 'free';
-        let planLabel = 'Free', limit = 8;
-        if (plan === 'starter') { planLabel = 'Starter'; limit = 15; }
-        else if (plan === 'pro') { planLabel = 'Pro'; limit = 25; }
-        document.getElementById('userPlan').textContent = planLabel;
-        document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
-        document.getElementById('usageLimit').textContent = limit;
-      } else {
-        await db.collection('users').doc(currentUser.uid).set({
-          email: currentUser.email,
-          plan: 'free',
-          generationsUsedThisMonth: 0,
-          monthlyResetDate: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }, { merge: true });
-        document.getElementById('userDisplayName').textContent = currentUser.email.split('@')[0];
+      } catch (err) {
+        console.error('Error loading profile:', err);
       }
     }
 
@@ -333,7 +336,7 @@
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ========== Generation Form ==========
+    // Generation form
     const genForm = document.getElementById('generateForm');
     const loadingDiv = document.getElementById('loading');
     const resultCard = document.getElementById('resultCard');
@@ -369,7 +372,7 @@
       finally { loadingDiv.style.display = 'none'; }
     });
 
-    // ========== Copy Buttons ==========
+    // Copy buttons
     document.getElementById('copyHtmlBtn').addEventListener('click', async () => {
       const articleHtml = document.getElementById('articleContent').innerHTML;
       const tempDiv = document.createElement('div');
@@ -412,7 +415,7 @@
       setTimeout(() => btn.innerHTML = orig, 2000);
     });
 
-    // ========== Upgrade ==========
+    // Upgrade
     function upgrade(plan, amount) {
       if (!currentUser) return;
       const paystack = new PaystackPop();
@@ -429,54 +432,65 @@
     document.getElementById('upgradeStarterBtn').addEventListener('click', () => upgrade('starter', 1000));
     document.getElementById('upgradeProBtn').addEventListener('click', () => upgrade('pro', 1500));
 
-    // ========== Home Button ==========
-    document.getElementById('homeBtn').addEventListener('click', () => {
-      window.location.href = '/';
-    });
+    // Home and Logout
+    document.getElementById('homeBtn').addEventListener('click', () => window.location.href = '/');
+    document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/'; });
 
-    // ========== Logout ==========
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await auth.signOut();
-      window.location.href = '/';
-    });
-
-    // ========== Profile Modal ==========
+    // Profile modal logic (FIXED)
     const modal = document.getElementById('profileModal');
     const profileBtn = document.getElementById('profileBtn');
     const closeModal = document.getElementById('closeModal');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+
     profileBtn.onclick = async () => {
-      const doc = await db.collection('users').doc(currentUser.uid).get();
-      if (doc.exists) {
-        document.getElementById('displayNameInput').value = doc.data().displayName || '';
-        if (doc.data().photoURL) {
-          document.getElementById('previewImage').src = doc.data().photoURL;
-        } else {
-          document.getElementById('previewImage').src = 'https://via.placeholder.com/100';
+      try {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists) {
+          document.getElementById('displayNameInput').value = doc.data().displayName || '';
+          if (doc.data().photoURL) {
+            document.getElementById('previewImage').src = doc.data().photoURL;
+          } else {
+            document.getElementById('previewImage').src = 'https://via.placeholder.com/100';
+          }
         }
+        modal.style.display = 'flex';
+      } catch (err) {
+        console.error(err);
+        alert('Could not load profile data.');
       }
-      modal.style.display = 'flex';
     };
     closeModal.onclick = () => modal.style.display = 'none';
     window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-    document.getElementById('saveProfileBtn').onclick = async () => {
+
+    saveProfileBtn.onclick = async () => {
+      if (!currentUser) return;
       const newName = document.getElementById('displayNameInput').value.trim();
       const file = document.getElementById('profilePicInput').files[0];
       let photoURL = null;
-      if (file) {
-        const ref = storage.ref().child(`users/${currentUser.uid}/profile.jpg`);
-        const upload = await ref.put(file);
-        photoURL = await upload.ref.getDownloadURL();
+      try {
+        if (file) {
+          const ref = storage.ref().child(`users/${currentUser.uid}/profile.jpg`);
+          const uploadTask = await ref.put(file);
+          photoURL = await uploadTask.ref.getDownloadURL();
+        }
+        const update = {};
+        if (newName) update.displayName = newName;
+        if (photoURL) update.photoURL = photoURL;
+        if (Object.keys(update).length) {
+          await db.collection('users').doc(currentUser.uid).set(update, { merge: true });
+          alert('Profile updated successfully!');
+          await loadUserProfile();
+        } else {
+          alert('No changes to save.');
+        }
+        modal.style.display = 'none';
+        document.getElementById('profilePicInput').value = '';
+      } catch (err) {
+        console.error('Save profile error:', err);
+        alert('Error saving profile: ' + err.message);
       }
-      const update = {};
-      if (newName) update.displayName = newName;
-      if (photoURL) update.photoURL = photoURL;
-      if (Object.keys(update).length) {
-        await db.collection('users').doc(currentUser.uid).set(update, { merge: true });
-      }
-      modal.style.display = 'none';
-      await loadUserProfile();
-      alert('Profile updated!');
     };
+
     document.getElementById('profilePicInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -486,7 +500,7 @@
       }
     });
 
-    // ========== Tab Switching ==========
+    // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -497,7 +511,7 @@
       });
     });
 
-    // ========== AI Analyzer ==========
+    // AI Analyzer
     const analyzeBtn = document.getElementById('analyzeBtn');
     const analyzeLoading = document.getElementById('analyzeLoading');
     const analyzeResult = document.getElementById('analyzeResult');
@@ -537,7 +551,7 @@
       finally { analyzeLoading.style.display = 'none'; }
     });
 
-    // ========== Sidebar Toggle ==========
+    // Sidebar toggle
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
@@ -547,7 +561,7 @@
       }
     });
 
-    // ========== PWA Install ==========
+    // PWA Install
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
