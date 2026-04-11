@@ -33,45 +33,24 @@
     .profile-pic { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
     .user-details h3 { font-size: 18px; margin-bottom: 4px; }
     .user-details p { color: #475569; font-size: 14px; }
-    .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .home-btn, .profile-btn, .logout-btn { color: white; border: none; padding: 8px 16px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+    .home-btn { background: #3b82f6; }
+    .profile-btn { background: #3b82f6; }
+    .logout-btn { background: #ef4444; }
     .upgrade-group { display: flex; gap: 8px; flex-wrap: wrap; }
     .upgrade-btn-starter, .upgrade-btn-pro { color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 700; cursor: pointer; }
     .upgrade-btn-starter { background: #f59e0b; }
     .upgrade-btn-pro { background: #0d9488; }
-    .logout-btn, .profile-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-    .profile-btn { background: #3b82f6; margin-right: 8px; }
     .dashboard-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; }
     .tab-btn { background: none; border: none; padding: 10px 20px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
     .tab-btn.active { color: #0d9488; border-bottom-color: #0d9488; }
-    .form-card, .result-card, .analyzer-card {
-      background: white;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      margin-bottom: 24px;
-    }
+    .form-card, .result-card, .analyzer-card { background: white; border-radius: 24px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 16px;
-      font-size: 15px;
-      font-family: inherit;
-    }
+    input, select, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 15px; font-family: inherit; }
     textarea { resize: vertical; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #0d9488; }
-    button[type="submit"], .analyze-btn {
-      background: linear-gradient(135deg, #0d9488, #0f766e);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 40px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+    button[type="submit"], .analyze-btn { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.2s; }
     .loading { display: none; text-align: center; margin: 20px 0; }
     .meta-box { background: #f1f5f9; padding: 16px; border-radius: 16px; margin-bottom: 20px; }
     .meta-title { font-size: 18px; font-weight: 700; color: #0f172a; }
@@ -118,6 +97,7 @@
           </div>
         </div>
         <div class="action-buttons">
+          <button class="home-btn" id="homeBtn">🏠 Home</button>
           <button class="profile-btn" id="profileBtn">👤 Profile</button>
           <div class="upgrade-group">
             <button class="upgrade-btn-starter" id="upgradeStarterBtn">Upgrade to Starter (₦1000/mo)</button>
@@ -258,11 +238,10 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const PAYSTACK_PUBLIC_KEY = "pk_test_..."; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
+    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
     let currentUser = null;
     let currentGenerations = [];
 
-    // Helper: escape HTML
     function escapeHtml(str) {
       return str.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
@@ -278,8 +257,13 @@
       const userDoc = await db.collection('users').doc(currentUser.uid).get();
       if (userDoc.exists) {
         const data = userDoc.data();
-        document.getElementById('userDisplayName').textContent = data.displayName || currentUser.email.split('@')[0];
-        if (data.photoURL) document.getElementById('profilePic').src = data.photoURL;
+        const displayName = data.displayName || currentUser.email.split('@')[0];
+        document.getElementById('userDisplayName').textContent = displayName;
+        if (data.photoURL) {
+          document.getElementById('profilePic').src = data.photoURL;
+        } else {
+          document.getElementById('profilePic').src = 'https://via.placeholder.com/48';
+        }
         const plan = data.plan || 'free';
         let planLabel = 'Free', limit = 8;
         if (plan === 'starter') { planLabel = 'Starter'; limit = 15; }
@@ -306,11 +290,10 @@
         await loadUserProfile();
         loadHistory();
       } else {
-        window.location.href = '/index.html';
+        window.location.href = '/';
       }
     });
 
-    // ========== Generation History ==========
     async function loadHistory() {
       if (!currentUser) return;
       const historyDiv = document.getElementById('historyList');
@@ -381,7 +364,7 @@
         document.getElementById('articleContent').innerHTML = data.article;
         resultCard.style.display = 'block';
         loadHistory();
-        await loadUserProfile(); // refresh usage count
+        await loadUserProfile();
       } catch (err) { alert('Error: ' + err.message); }
       finally { loadingDiv.style.display = 'none'; }
     });
@@ -445,7 +428,17 @@
     }
     document.getElementById('upgradeStarterBtn').addEventListener('click', () => upgrade('starter', 1000));
     document.getElementById('upgradeProBtn').addEventListener('click', () => upgrade('pro', 1500));
-    document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); location.href = '/index.html'; });
+
+    // ========== Home Button ==========
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    // ========== Logout ==========
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await auth.signOut();
+      window.location.href = '/';
+    });
 
     // ========== Profile Modal ==========
     const modal = document.getElementById('profileModal');
@@ -453,7 +446,14 @@
     const closeModal = document.getElementById('closeModal');
     profileBtn.onclick = async () => {
       const doc = await db.collection('users').doc(currentUser.uid).get();
-      if (doc.exists) document.getElementById('displayNameInput').value = doc.data().displayName || '';
+      if (doc.exists) {
+        document.getElementById('displayNameInput').value = doc.data().displayName || '';
+        if (doc.data().photoURL) {
+          document.getElementById('previewImage').src = doc.data().photoURL;
+        } else {
+          document.getElementById('previewImage').src = 'https://via.placeholder.com/100';
+        }
+      }
       modal.style.display = 'flex';
     };
     closeModal.onclick = () => modal.style.display = 'none';
@@ -470,10 +470,12 @@
       const update = {};
       if (newName) update.displayName = newName;
       if (photoURL) update.photoURL = photoURL;
-      if (Object.keys(update).length) await db.collection('users').doc(currentUser.uid).set(update, { merge: true });
+      if (Object.keys(update).length) {
+        await db.collection('users').doc(currentUser.uid).set(update, { merge: true });
+      }
       modal.style.display = 'none';
       await loadUserProfile();
-      alert('Profile updated');
+      alert('Profile updated!');
     };
     document.getElementById('profilePicInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -515,7 +517,6 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Analysis failed');
-        // Display results
         document.getElementById('analyzeScore').textContent = data.score;
         document.getElementById('wordCount').textContent = data.wordCount;
         document.getElementById('keywordDensity').textContent = data.keywordDensity;

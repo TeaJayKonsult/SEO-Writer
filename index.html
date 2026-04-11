@@ -3,147 +3,489 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEO Writer | TeaJay Konsult Ltd.</title>
+  <title>SEO Writer | AI Content & SEO Tool by TeaJay Konsult</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="description" content="Generate SEO-optimized articles, meta tags, keyword suggestions, and get real‑time SEO scores. Free tier available.">
+  <meta name="keywords" content="SEO, content writer, AI, meta tags, keyword planner">
+  <meta name="author" content="TeaJay Konsult Ltd.">
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a1f12 0%, #0f2d1a 100%);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      animation: fadeInBg 1s ease;
+      background: #f8fafc;
+      color: #0f172a;
+      line-height: 1.5;
     }
-    @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
-    .app-header { text-align: center; margin-bottom: 20px; width: 100%; }
-    .app-header .brand { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); font-weight: 600; }
-    .app-header h1 { font-size: 28px; font-weight: 800; color: #fff; margin-top: 4px; }
-    .app-footer { text-align: center; margin-top: 30px; font-size: 12px; color: rgba(255,255,255,0.6); width: 100%; }
-    .auth-container {
-      background: rgba(255,255,255,0.98);
-      max-width: 420px;
-      width: 100%;
-      padding: 32px 28px;
-      border-radius: 32px;
-      box-shadow: 0 25px 45px rgba(0,0,0,0.2);
-      backdrop-filter: blur(2px);
-      animation: slideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    h2 { margin-bottom: 20px; text-align: center; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #0d9488, #0f766e); background-clip: text; -webkit-background-clip: text; color: transparent; }
-    .tab { display: flex; gap: 12px; margin-bottom: 28px; border-bottom: 2px solid #e2e8f0; }
-    .tab button { flex: 1; background: none; border: none; padding: 12px 0; font-weight: 600; font-size: 16px; cursor: pointer; color: #64748b; transition: all 0.2s ease; position: relative; }
-    .tab button::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0%; height: 2px; background: #0d9488; transition: width 0.3s ease; }
-    .tab button.active { color: #0d9488; }
-    .tab button.active::after { width: 100%; }
-    .form-group { margin-bottom: 20px; position: relative; }
-    label { display: block; margin-bottom: 6px; font-weight: 500; color: #1e293b; font-size: 14px; }
-    input { width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 15px; transition: all 0.2s ease; background: #fff; padding-right: 40px; }
-    input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); transform: scale(1.01); }
-    .toggle-password {
-      position: absolute;
-      right: 14px;
-      bottom: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      color: #64748b;
-      padding: 0;
-    }
-    button[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #0d9488, #0f766e);
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0a1f12, #0f2d1a);
+      padding: 20px 24px;
       color: white;
-      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo span {
+      color: #0d9488;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-outline-light {
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.5);
+      color: white;
+      padding: 8px 20px;
       border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-outline-light:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: white;
+    }
+    .btn-primary-light {
+      background: #0d9488;
+      border: none;
+      color: white;
+      padding: 8px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-primary-light:hover {
+      background: #0f766e;
+      transform: translateY(-2px);
+    }
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 24px;
+      background: linear-gradient(135deg, #f8fafc, #e6f7f5);
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+    .hero h1 span {
+      color: #0d9488;
+    }
+    .hero p {
+      font-size: 18px;
+      color: #475569;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-large {
+      padding: 12px 32px;
       font-size: 16px;
       font-weight: 700;
+      border-radius: 50px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      margin-top: 8px;
-      box-shadow: 0 4px 10px rgba(13,148,136,0.3);
+      transition: 0.2s;
     }
-    button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,148,136,0.4); }
-    .message { margin-top: 16px; font-size: 13px; text-align: center; color: #16a34a; }
-    .error { color: #dc2626; }
-    .hidden { display: none; }
-    .note { font-size: 11px; color: #64748b; margin-top: 6px; }
-    .auth-form { animation: fadeSlide 0.4s ease forwards; }
-    @keyframes fadeSlide { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
-    .fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #0d9488, #0f766e);
+    .btn-primary {
+      background: #0d9488;
       color: white;
       border: none;
+    }
+    .btn-primary:hover {
+      background: #0f766e;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(13,148,136,0.3);
+    }
+    .btn-secondary {
+      background: white;
+      color: #0d9488;
+      border: 2px solid #0d9488;
+    }
+    .btn-secondary:hover {
+      background: #f0fdfa;
+      transform: translateY(-2px);
+    }
+    /* Features */
+    .features {
+      padding: 80px 24px;
+      background: white;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 48px;
+    }
+    .section-title span {
+      color: #0d9488;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: #f8fafc;
+      padding: 28px;
+      border-radius: 24px;
+      text-align: center;
+      transition: 0.2s;
+      border: 1px solid #e2e8f0;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: #0d9488;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.05);
+    }
+    .feature-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    .feature-card p {
+      color: #475569;
+    }
+    /* Pricing */
+    .pricing {
+      background: #f1f5f9;
+      padding: 80px 24px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      background: white;
+      border-radius: 32px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      transition: 0.2s;
+      border: 1px solid #e2e8f0;
+    }
+    .pricing-card.popular {
+      border: 2px solid #0d9488;
+      position: relative;
+    }
+    .popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0d9488;
+      color: white;
+      padding: 4px 16px;
       border-radius: 50px;
-      padding: 12px 18px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      box-shadow: 0 4px 20px rgba(13,148,136,0.4);
-      cursor: pointer;
-      z-index: 999;
-      display: none;
+    }
+    .price {
+      font-size: 36px;
+      font-weight: 800;
+      color: #0d9488;
+      margin: 20px 0;
+    }
+    .price span {
+      font-size: 16px;
+      font-weight: 400;
+      color: #64748b;
+    }
+    .pricing-card ul {
+      list-style: none;
+      margin: 24px 0;
+      text-align: left;
+    }
+    .pricing-card li {
+      margin-bottom: 12px;
+      display: flex;
       align-items: center;
       gap: 8px;
+    }
+    .pricing-card li::before {
+      content: "✓";
+      color: #0d9488;
+      font-weight: 800;
+    }
+    .btn-pricing {
+      background: #0d9488;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+    }
+    /* Footer */
+    .footer {
+      background: #0a1f12;
+      color: white;
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 14px;
+    }
+    /* Auth Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      max-width: 420px;
+      width: 90%;
+      padding: 32px;
+      border-radius: 32px;
+      position: relative;
+    }
+    .close-modal {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .modal h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .modal .tab {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .modal .tab button {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .modal .tab button.active {
+      color: #0d9488;
+      border-bottom: 2px solid #0d9488;
+    }
+    .modal .form-group {
+      margin-bottom: 20px;
+    }
+    .modal input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 15px;
+    }
+    .modal button[type="submit"] {
+      width: 100%;
+      background: #0d9488;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .message {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+    }
+    .error {
+      color: #dc2626;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .hero {
+        padding: 60px 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <button class="fab" id="installBtn">📲 Install App</button>
-  <div class="app-header">
-    <div class="brand">TeaJay Konsult Ltd.</div>
-    <h1>📄 SEO Writer</h1>
-  </div>
-  <div class="auth-container" id="authContainer">
-    <h2>🚀 Create Better Content</h2>
-    <div class="tab">
-      <button id="signinTab" class="active">Sign In</button>
-      <button id="signupTab">Sign Up</button>
+  <div class="header">
+    <div class="logo">
+      <h1>📄 SEO<span>Writer</span></h1>
+      <p style="font-size: 12px; margin-top: 4px;">by TeaJay Konsult</p>
     </div>
-    <!-- Sign In Form -->
-    <form id="signinForm" class="auth-form">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="signinEmail" required autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="signinPassword" required autocomplete="current-password">
-        <button type="button" class="toggle-password" data-target="signinPassword">👁️</button>
-      </div>
-      <button type="submit">Sign In</button>
-      <div class="message" id="signinMessage"></div>
-    </form>
-    <!-- Sign Up Form -->
-    <form id="signupForm" class="auth-form hidden">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="signupEmail" required autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="signupPassword" required autocomplete="new-password">
-        <button type="button" class="toggle-password" data-target="signupPassword">👁️</button>
-        <div class="note">🔒 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special</div>
-      </div>
-      <button type="submit">Create Account</button>
-      <div class="message" id="signupMessage"></div>
-    </form>
+    <div class="nav-buttons">
+      <button class="btn-outline-light" id="signinNavBtn">Sign In</button>
+      <button class="btn-primary-light" id="signupNavBtn">Sign Up</button>
+    </div>
   </div>
-  <div class="app-footer">
-    © 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult
+
+  <div class="hero">
+    <h1>Write Better Content.<br>Rank <span>Higher</span> on Google.</h1>
+    <p>Generate SEO-optimized articles, meta tags, keyword suggestions, and get real‑time SEO scores. Trusted by content creators and businesses.</p>
+    <div class="cta-buttons">
+      <button class="btn-large btn-primary" id="heroSignupBtn">Start Free →</button>
+      <button class="btn-large btn-secondary" id="heroSigninBtn">Sign In</button>
+    </div>
   </div>
+
+  <div class="features">
+    <h2 class="section-title">Powerful <span>Features</span></h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Article Generation</h3>
+        <p>Generate high-quality, unique articles in seconds. Choose tone, length, and target keywords.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>SEO Score & Analysis</h3>
+        <p>Get instant SEO scores with actionable suggestions to improve your content.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h3>Meta Tags & Keywords</h3>
+        <p>Automatically generate meta titles, descriptions, and related keywords for any article.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Copy as HTML or Markdown</h3>
+        <p>Copy your content with one click – rich HTML for blogs, Markdown for social media.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📜</div>
+        <h3>Content History</h3>
+        <p>All your generated articles are saved. Access them anytime from your dashboard.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Privacy First</h3>
+        <p>Your data is secure. We never sell or share your content.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pricing">
+    <h2 class="section-title">Simple, <span>Transparent</span> Pricing</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <h3>Free</h3>
+        <div class="price">₦0<span>/month</span></div>
+        <ul>
+          <li>8 article generations/month</li>
+          <li>Basic SEO score</li>
+          <li>30‑day history</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn-pricing signupFreeBtn">Get Started</button>
+      </div>
+      <div class="pricing-card popular">
+        <div class="popular-badge">Most Popular</div>
+        <h3>Starter</h3>
+        <div class="price">₦1,000<span>/month</span></div>
+        <ul>
+          <li>15 article generations/month</li>
+          <li>Advanced SEO analysis</li>
+          <li>Meta tags & keyword planner</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn-pricing signupStarterBtn">Upgrade Now</button>
+      </div>
+      <div class="pricing-card">
+        <h3>Pro</h3>
+        <div class="price">₦1,500<span>/month</span></div>
+        <ul>
+          <li>25 article generations/month</li>
+          <li>Everything in Starter</li>
+          <li>API access (coming soon)</li>
+          <li>Team support</li>
+        </ul>
+        <button class="btn-pricing signupProBtn">Upgrade Now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult</p>
+  </div>
+
+  <!-- Auth Modal (Sign In / Sign Up) -->
+  <div id="authModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModalBtn">&times;</span>
+      <div class="tab">
+        <button id="modalSigninTab" class="active">Sign In</button>
+        <button id="modalSignupTab">Sign Up</button>
+      </div>
+      <!-- Sign In Form -->
+      <form id="modalSigninForm">
+        <div class="form-group">
+          <input type="email" id="modalSigninEmail" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="modalSigninPassword" placeholder="Password" required>
+        </div>
+        <button type="submit">Sign In</button>
+        <div class="message" id="modalSigninMessage"></div>
+      </form>
+      <!-- Sign Up Form -->
+      <form id="modalSignupForm" class="hidden">
+        <div class="form-group">
+          <input type="email" id="modalSignupEmail" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="modalSignupPassword" placeholder="Password (min. 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special)" required>
+        </div>
+        <button type="submit">Create Account</button>
+        <div class="message" id="modalSignupMessage"></div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -156,57 +498,66 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Password toggle
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        if (input.type === 'password') {
-          input.type = 'text';
-          btn.textContent = '🙈';
-        } else {
-          input.type = 'password';
-          btn.textContent = '👁️';
-        }
-      });
-    });
+    // Modal elements
+    const modal = document.getElementById('authModal');
+    const signinTab = document.getElementById('modalSigninTab');
+    const signupTab = document.getElementById('modalSignupTab');
+    const signinForm = document.getElementById('modalSigninForm');
+    const signupForm = document.getElementById('modalSignupForm');
+    const signinEmail = document.getElementById('modalSigninEmail');
+    const signinPassword = document.getElementById('modalSigninPassword');
+    const signupEmail = document.getElementById('modalSignupEmail');
+    const signupPassword = document.getElementById('modalSignupPassword');
+    const signinMessage = document.getElementById('modalSigninMessage');
+    const signupMessage = document.getElementById('modalSignupMessage');
 
-    const signinTab = document.getElementById('signinTab');
-    const signupTab = document.getElementById('signupTab');
-    const signinForm = document.getElementById('signinForm');
-    const signupForm = document.getElementById('signupForm');
-    const signinEmail = document.getElementById('signinEmail');
-    const signinPassword = document.getElementById('signinPassword');
-    const signupEmail = document.getElementById('signupEmail');
-    const signupPassword = document.getElementById('signupPassword');
-    const signinMessage = document.getElementById('signinMessage');
-    const signupMessage = document.getElementById('signupMessage');
-
-    function validatePassword(password) {
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-      return regex.test(password);
-    }
-
-    function switchForm(showSignIn) {
+    // Open modal from various buttons
+    function openModal(showSignIn = true) {
+      modal.style.display = 'flex';
       if (showSignIn) {
         signinTab.classList.add('active');
         signupTab.classList.remove('active');
         signinForm.classList.remove('hidden');
         signupForm.classList.add('hidden');
-        signinMessage.textContent = '';
       } else {
         signupTab.classList.add('active');
         signinTab.classList.remove('active');
         signupForm.classList.remove('hidden');
         signinForm.classList.add('hidden');
-        signupMessage.textContent = '';
       }
     }
+    document.getElementById('signinNavBtn').onclick = () => openModal(true);
+    document.getElementById('signupNavBtn').onclick = () => openModal(false);
+    document.getElementById('heroSigninBtn').onclick = () => openModal(true);
+    document.getElementById('heroSignupBtn').onclick = () => openModal(false);
+    document.querySelectorAll('.signupFreeBtn, .signupStarterBtn, .signupProBtn').forEach(btn => {
+      btn.onclick = () => openModal(false);
+    });
+    document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 
-    signinTab.addEventListener('click', () => switchForm(true));
-    signupTab.addEventListener('click', () => switchForm(false));
+    // Tab switching
+    signinTab.onclick = () => {
+      signinTab.classList.add('active');
+      signupTab.classList.remove('active');
+      signinForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    };
+    signupTab.onclick = () => {
+      signupTab.classList.add('active');
+      signinTab.classList.remove('active');
+      signupForm.classList.remove('hidden');
+      signinForm.classList.add('hidden');
+    };
 
-    signinForm.addEventListener('submit', async (e) => {
+    // Validate password
+    function validatePassword(password) {
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+      return regex.test(password);
+    }
+
+    // Sign In
+    signinForm.onsubmit = async (e) => {
       e.preventDefault();
       signinMessage.textContent = '';
       const email = signinEmail.value.trim();
@@ -218,15 +569,16 @@
         signinMessage.textContent = err.message;
         signinMessage.classList.add('error');
       }
-    });
+    };
 
-    signupForm.addEventListener('submit', async (e) => {
+    // Sign Up
+    signupForm.onsubmit = async (e) => {
       e.preventDefault();
       signupMessage.textContent = '';
       const email = signupEmail.value.trim();
       const password = signupPassword.value;
       if (!validatePassword(password)) {
-        signupMessage.textContent = '❌ Password does not meet requirements.';
+        signupMessage.textContent = 'Password does not meet requirements.';
         signupMessage.classList.add('error');
         return;
       }
@@ -237,27 +589,7 @@
         signupMessage.textContent = err.message;
         signupMessage.classList.add('error');
       }
-    });
-
-    // PWA Install
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBtn = document.getElementById('installBtn');
-      if (installBtn) installBtn.style.display = 'flex';
-    });
-    document.getElementById('installBtn')?.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') deferredPrompt = null;
-        document.getElementById('installBtn').style.display = 'none';
-      }
-    });
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
-    }
+    };
   </script>
 </body>
 </html>
