@@ -6,7 +6,6 @@
   <title>SEO Writer | Dashboard</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    /* (your existing styles – unchanged) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -84,7 +83,27 @@
     .user-details p { color: #475569; font-size: 14px; }
     .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
     .upgrade-btn { background: #0d9488; color: white; border: none; padding: 10px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; margin-left: 12px; }
-    .form-card, .result-card {
+    .dashboard-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 20px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: #0d9488;
+      border-bottom-color: #0d9488;
+    }
+    .form-card, .result-card, .analyzer-card {
       background: white;
       border-radius: 24px;
       padding: 28px;
@@ -93,15 +112,16 @@
     }
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 12px 14px;
       border: 1.5px solid #e2e8f0;
       border-radius: 16px;
       font-size: 15px;
+      font-family: inherit;
     }
-    input:focus, select:focus { outline: none; border-color: #0d9488; }
-    button[type="submit"] {
+    textarea { resize: vertical; }
+    button[type="submit"], .analyze-btn {
       background: linear-gradient(135deg, #0d9488, #0f766e);
       color: white;
       border: none;
@@ -117,6 +137,7 @@
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
     .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
     .score { font-size: 24px; font-weight: 800; color: #0d9488; }
+    .suggestions-list { margin-top: 12px; padding-left: 20px; color: #475569; }
     .copy-btn {
       background: #0d9488;
       color: white;
@@ -187,51 +208,98 @@
           <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
         </div>
         <div>
-          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
+          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro (₦1500/mo)</button>
           <button class="logout-btn" id="logoutBtn">Sign Out</button>
         </div>
       </div>
-      <div class="form-card">
-        <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
-        <form id="generateForm">
-          <div class="form-group">
-            <label>Topic / Title</label>
-            <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
-          </div>
-          <div class="form-group">
-            <label>Target Keywords (comma separated)</label>
-            <input type="text" id="keywords" placeholder="freelance, business, startup" required>
-          </div>
-          <div class="form-group">
-            <label>Tone</label>
-            <select id="tone">
-              <option value="professional">Professional</option>
-              <option value="casual">Casual</option>
-              <option value="persuasive">Persuasive</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Length</label>
-            <select id="length">
-              <option value="short">Short (500 words)</option>
-              <option value="medium" selected>Medium (800–1200 words)</option>
-              <option value="long">Long (1500+ words)</option>
-            </select>
-          </div>
-          <button type="submit">🚀 Generate Article</button>
-        </form>
-        <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
+
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" data-tab="generate">✍️ Generate Article</button>
+        <button class="tab-btn" data-tab="analyze">🔍 SEO Analyzer</button>
       </div>
-      <div class="result-card" id="resultCard" style="display:none;">
-        <h2>📝 Generated Content</h2>
-        <div class="meta-box">
-          <div class="meta-title" id="metaTitle"></div>
-          <div class="meta-desc" id="metaDesc"></div>
-          <div class="tags" id="tagsContainer"></div>
-          <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
+
+      <!-- GENERATE TAB -->
+      <div id="generateTab" class="tab-content">
+        <div class="form-card">
+          <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
+          <form id="generateForm">
+            <div class="form-group">
+              <label>Topic / Title</label>
+              <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
+            </div>
+            <div class="form-group">
+              <label>Target Keywords (comma separated)</label>
+              <input type="text" id="keywords" placeholder="freelance, business, startup" required>
+            </div>
+            <div class="form-group">
+              <label>Tone</label>
+              <select id="tone">
+                <option value="professional">Professional</option>
+                <option value="casual">Casual</option>
+                <option value="persuasive">Persuasive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Length</label>
+              <select id="length">
+                <option value="short">Short (500 words)</option>
+                <option value="medium" selected>Medium (800–1200 words)</option>
+                <option value="long">Long (1500+ words)</option>
+              </select>
+            </div>
+            <button type="submit">🚀 Generate Article</button>
+          </form>
+          <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
         </div>
-        <div id="articleContent"></div>
-        <button class="copy-btn" id="copyBtn">📋 Copy Article (Rich Text)</button>
+        <div class="result-card" id="resultCard" style="display:none;">
+          <h2>📝 Generated Content</h2>
+          <div class="meta-box">
+            <div class="meta-title" id="metaTitle"></div>
+            <div class="meta-desc" id="metaDesc"></div>
+            <div class="tags" id="tagsContainer"></div>
+            <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
+          </div>
+          <div id="articleContent"></div>
+          <button class="copy-btn" id="copyBtn">📋 Copy Article (Rich HTML)</button>
+        </div>
+      </div>
+
+      <!-- ANALYZE TAB -->
+      <div id="analyzeTab" class="tab-content" style="display:none;">
+        <div class="analyzer-card">
+          <h2>🔍 SEO Content Analyzer</h2>
+          <div class="form-group">
+            <label>Paste your article text</label>
+            <textarea id="analyzeContent" rows="12" placeholder="Paste your article content here..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Target Keywords (optional, comma separated)</label>
+            <input type="text" id="analyzeKeywords" placeholder="e.g., freelance, business">
+          </div>
+          <button class="analyze-btn" id="analyzeBtn">🔍 Analyze SEO</button>
+          <div class="loading" id="analyzeLoading" style="display:none;">⏳ Analyzing... please wait (10‑20 sec)</div>
+        </div>
+        <div class="result-card" id="analyzeResult" style="display:none;">
+          <h2>📊 SEO Analysis Results</h2>
+          <div class="meta-box">
+            <div>SEO Score: <span class="score" id="analyzeScore"></span>/100</div>
+            <div>Word Count: <strong id="wordCount"></strong></div>
+            <div>Keyword Density: <strong id="keywordDensity"></strong>%</div>
+            <div>Readability (Flesch): <strong id="readability"></strong> (higher is better)</div>
+            <div>Headings: H1: <span id="h1Count">0</span>, H2: <span id="h2Count">0</span>, H3: <span id="h3Count">0</span></div>
+          </div>
+          <h3>💡 Suggestions</h3>
+          <ul class="suggestions-list" id="suggestionsList"></ul>
+          <h3>🔖 Suggested Meta Tags</h3>
+          <div class="meta-box">
+            <div><strong>Meta Title:</strong> <span id="suggestedTitle"></span></div>
+            <div><strong>Meta Description:</strong> <span id="suggestedDesc"></span></div>
+          </div>
+          <h3>🏷️ Related Keywords</h3>
+          <div class="tags" id="relatedKeywords"></div>
+          <h3>🔎 Sub‑Keywords</h3>
+          <div class="tags" id="subKeywords"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -240,7 +308,7 @@
   </div>
 
   <script>
-    // Firebase Config (your existing config – replace with your actual values if needed)
+    // Firebase Config (same as index.html)
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -254,7 +322,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const PAYSTACK_PUBLIC_KEY = "pk_test_..."; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
+    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
     let currentUser = null;
     let currentGenerations = [];
 
@@ -265,9 +333,18 @@
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           const data = userDoc.data();
-          document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
+          const plan = data.plan || 'free';
+          document.getElementById('userPlan').textContent = plan === 'pro' ? 'Pro' : 'Free';
           document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
-          document.getElementById('usageLimit').textContent = data.plan === 'pro' ? '25' : '8';
+          document.getElementById('usageLimit').textContent = plan === 'pro' ? '25' : '8';
+        } else {
+          await db.collection('users').doc(user.uid).set({
+            email: user.email,
+            plan: 'free',
+            generationsUsedThisMonth: 0,
+            monthlyResetDate: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+          });
         }
         loadHistory();
       } else {
@@ -334,11 +411,15 @@
         amount: 1500 * 100,
         currency: 'NGN',
         metadata: { userId: currentUser.uid, plan: 'pro' },
-        onSuccess: (transaction) => alert(`Payment successful! Reference: ${transaction.reference}`),
+        onSuccess: (transaction) => {
+          alert(`Payment successful! Reference: ${transaction.reference}. Your plan will be upgraded shortly.`);
+          setTimeout(() => location.reload(), 3000);
+        },
         onCancel: () => alert('Payment cancelled.')
       });
     });
 
+    // GENERATION FORM
     const form = document.getElementById('generateForm');
     const loadingDiv = document.getElementById('loading');
     const resultCard = document.getElementById('resultCard');
@@ -375,24 +456,58 @@
           document.getElementById('usageCount').textContent = userDoc.data().generationsUsedThisMonth || 0;
         }
       } catch (err) {
-        // SHOW THE EXACT ERROR IN AN ALERT
-        alert('Generation error: ' + err.message);
+        alert('Error: ' + err.message);
         console.error(err);
       } finally {
         loadingDiv.style.display = 'none';
       }
     });
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
-    }
+    // ANALYZER
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeLoading = document.getElementById('analyzeLoading');
+    const analyzeResult = document.getElementById('analyzeResult');
 
-    // Copy button logic (rich HTML)
+    analyzeBtn.addEventListener('click', async () => {
+      const content = document.getElementById('analyzeContent').value.trim();
+      const targetKeywords = document.getElementById('analyzeKeywords').value.trim();
+      if (!content) { alert('Please paste your article content.'); return; }
+      analyzeLoading.style.display = 'block';
+      analyzeResult.style.display = 'none';
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/analyze-seo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({ content, targetKeywords })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Analysis failed');
+        document.getElementById('analyzeScore').textContent = data.score;
+        document.getElementById('wordCount').textContent = data.wordCount;
+        document.getElementById('keywordDensity').textContent = data.keywordDensity;
+        document.getElementById('readability').textContent = data.readability;
+        document.getElementById('h1Count').textContent = data.headings?.h1 || 0;
+        document.getElementById('h2Count').textContent = data.headings?.h2 || 0;
+        document.getElementById('h3Count').textContent = data.headings?.h3 || 0;
+        const suggestionsUl = document.getElementById('suggestionsList');
+        suggestionsUl.innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+        document.getElementById('suggestedTitle').textContent = data.metaTitle || 'Not available';
+        document.getElementById('suggestedDesc').textContent = data.metaDescription || 'Not available';
+        const relatedDiv = document.getElementById('relatedKeywords');
+        relatedDiv.innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+        const subDiv = document.getElementById('subKeywords');
+        subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+        analyzeResult.style.display = 'block';
+      } catch (err) {
+        alert('Error: ' + err.message);
+        console.error(err);
+      } finally {
+        analyzeLoading.style.display = 'none';
+      }
+    });
+
+    // COPY BUTTON (rich HTML)
     document.getElementById('copyBtn').addEventListener('click', async () => {
       const articleHtml = document.getElementById('articleContent').innerHTML;
       const tempDiv = document.createElement('div');
@@ -411,11 +526,22 @@
         ]);
         const btn = document.getElementById('copyBtn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✅ Copied (Rich HTML)';
+        btn.innerHTML = '✅ Copied!';
         setTimeout(() => { btn.innerHTML = originalText; }, 2000);
       } catch (err) {
         navigator.clipboard.writeText(plainText);
       }
+    });
+
+    // TAB SWITCHING
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.getAttribute('data-tab');
+        document.getElementById('generateTab').style.display = tab === 'generate' ? 'block' : 'none';
+        document.getElementById('analyzeTab').style.display = tab === 'analyze' ? 'block' : 'none';
+      });
     });
 
     // Sidebar toggle
@@ -448,6 +574,15 @@
     });
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
     }
   </script>
 </body>
