@@ -5,52 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Writer | Dashboard</title>
   <link rel="manifest" href="manifest.json">
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-  <script src="https://js.paystack.co/v2/inline.js"></script>
   <style>
+    /* (your existing styles – unchanged) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
-    .app-header { background: linear-gradient(135deg, #0a1f12, #0f2d1a); padding: 16px 24px; text-align: center; color: white; position: relative; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-header {
+      background: linear-gradient(135deg, #0a1f12, #0f2d1a);
+      padding: 16px 24px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
     .app-header .brand { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
     .app-header h1 { font-size: 24px; margin-top: 4px; }
-    .menu-toggle { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 24px; cursor: pointer; display: none; }
-    .app-footer { text-align: center; padding: 16px; font-size: 12px; color: #475569; border-top: 1px solid #e2e8f0; background: white; }
+    .menu-toggle {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: none;
+    }
+    .app-footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      color: #475569;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
     .app-wrapper { display: flex; flex: 1; }
-    .sidebar { width: 280px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: transform 0.3s ease; }
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
     .sidebar-header { padding: 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; }
     .history-list { flex: 1; overflow-y: auto; padding: 16px; }
-    .history-item { background: #f8fafc; border-radius: 12px; padding: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; }
+    .history-item {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #e2e8f0;
+    }
     .history-item:hover { background: #f1f5f9; border-color: #0d9488; }
     .history-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .history-date { font-size: 11px; color: #64748b; margin-top: 4px; }
     .main-content { flex: 1; padding: 24px; overflow-y: auto; }
-    .user-info { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .user-details { display: flex; align-items: center; gap: 16px; }
-    .profile-pic { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+    .user-info {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
     .user-details h3 { font-size: 18px; margin-bottom: 4px; }
     .user-details p { color: #475569; font-size: 14px; }
-    .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .home-btn, .profile-btn, .logout-btn { color: white; border: none; padding: 8px 16px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-    .home-btn { background: #3b82f6; }
-    .profile-btn { background: #3b82f6; }
-    .logout-btn { background: #ef4444; }
-    .upgrade-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .upgrade-btn-starter, .upgrade-btn-pro { color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 700; cursor: pointer; }
-    .upgrade-btn-starter { background: #f59e0b; }
-    .upgrade-btn-pro { background: #0d9488; }
-    .dashboard-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; }
-    .tab-btn { background: none; border: none; padding: 10px 20px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
-    .tab-btn.active { color: #0d9488; border-bottom-color: #0d9488; }
-    .form-card, .result-card, .analyzer-card { background: white; border-radius: 24px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
+    .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+    .upgrade-btn { background: #0d9488; color: white; border: none; padding: 10px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; margin-left: 12px; }
+    .form-card, .result-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+    }
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; }
-    input, select, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 15px; font-family: inherit; }
-    textarea { resize: vertical; }
-    button[type="submit"], .analyze-btn { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 15px;
+    }
+    input:focus, select:focus { outline: none; border-color: #0d9488; }
+    button[type="submit"] {
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+    }
     .loading { display: none; text-align: center; margin: 20px 0; }
     .meta-box { background: #f1f5f9; padding: 16px; border-radius: 16px; margin-bottom: 20px; }
     .meta-title { font-size: 18px; font-weight: 700; color: #0f172a; }
@@ -58,22 +117,54 @@
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
     .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
     .score { font-size: 24px; font-weight: 800; color: #0d9488; }
-    .suggestions-list { margin-top: 12px; padding-left: 20px; color: #475569; }
-    .copy-group { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-    .copy-btn { background: #0d9488; color: white; border: none; padding: 8px 16px; border-radius: 40px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-    .copy-btn-markdown { background: #f59e0b; }
-    .fab { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #0d9488, #0f766e); color: white; border: none; border-radius: 50px; padding: 12px 18px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 20px rgba(13,148,136,0.4); cursor: pointer; z-index: 999; display: none; align-items: center; gap: 8px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
-    .modal-content { background: white; max-width: 500px; width: 90%; padding: 24px; border-radius: 24px; position: relative; }
-    .close-modal { position: absolute; top: 16px; right: 20px; font-size: 24px; cursor: pointer; }
-    .profile-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-top: 10px; }
+    .copy-btn {
+      background: #0d9488;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(13,148,136,0.4);
+      cursor: pointer;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
     @media (max-width: 768px) {
-      .sidebar { position: fixed; top: 0; left: 0; height: 100%; z-index: 1000; transform: translateX(-100%); box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
-      .sidebar.open { transform: translateX(0); }
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        z-index: 100;
+        height: 100%;
+        transition: left 0.3s;
+      }
+      .sidebar.open { left: 0; }
       .menu-toggle { display: block; }
       .main-content { padding: 16px; }
     }
   </style>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <button class="fab" id="installBtn">📲 Install App</button>
@@ -85,145 +176,71 @@
   <div class="app-wrapper">
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">📜 Generation History</div>
-      <div class="history-list" id="historyList">Loading...</div>
+      <div class="history-list" id="historyList">
+        <div style="text-align:center; padding:20px; color:#64748b;">Loading history...</div>
+      </div>
     </div>
     <div class="main-content">
       <div class="user-info" id="userInfo">
         <div class="user-details">
-          <img class="profile-pic" id="profilePic" src="https://via.placeholder.com/48" alt="Profile">
-          <div>
-            <h3>Welcome, <span id="userDisplayName">User</span> (<span id="userEmail">Loading...</span>)</h3>
-            <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
-          </div>
+          <h3>Welcome, <span id="userEmail">Loading...</span></h3>
+          <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
         </div>
-        <div class="action-buttons">
-          <button class="home-btn" id="homeBtn">🏠 Home</button>
-          <button class="profile-btn" id="profileBtn">👤 Profile</button>
-          <div class="upgrade-group">
-            <button class="upgrade-btn-starter" id="upgradeStarterBtn">Upgrade to Starter (₦1000/mo)</button>
-            <button class="upgrade-btn-pro" id="upgradeProBtn">Upgrade to Pro (₦1500/mo)</button>
-          </div>
+        <div>
+          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro</button>
           <button class="logout-btn" id="logoutBtn">Sign Out</button>
         </div>
       </div>
-
-      <div class="dashboard-tabs">
-        <button class="tab-btn active" data-tab="generate">✍️ Generate Article</button>
-        <button class="tab-btn" data-tab="analyze">🔍 SEO Analyzer (AI)</button>
-      </div>
-
-      <!-- GENERATE TAB -->
-      <div id="generateTab" class="tab-content">
-        <div class="form-card">
-          <h2>✍️ Generate SEO Article</h2>
-          <form id="generateForm">
-            <div class="form-group">
-              <label>Topic / Title</label>
-              <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
-            </div>
-            <div class="form-group">
-              <label>Target Keywords (comma separated)</label>
-              <input type="text" id="keywords" placeholder="freelance, business, startup" required>
-            </div>
-            <div class="form-group">
-              <label>Tone</label>
-              <select id="tone">
-                <option value="professional">Professional</option>
-                <option value="casual">Casual</option>
-                <option value="persuasive">Persuasive</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Length</label>
-              <select id="length">
-                <option value="short">Short (500 words)</option>
-                <option value="medium" selected>Medium (800–1200 words)</option>
-                <option value="long">Long (1500+ words)</option>
-              </select>
-            </div>
-            <button type="submit">🚀 Generate Article</button>
-          </form>
-          <div class="loading" id="loading">⏳ Generating... please wait (15‑30 sec)</div>
-        </div>
-        <div class="result-card" id="resultCard" style="display:none;">
-          <h2>📝 Generated Content</h2>
-          <div class="meta-box">
-            <div class="meta-title" id="metaTitle"></div>
-            <div class="meta-desc" id="metaDesc"></div>
-            <div class="tags" id="tagsContainer"></div>
-            <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
-          </div>
-          <div id="articleContent"></div>
-          <div class="copy-group">
-            <button class="copy-btn" id="copyHtmlBtn">📋 Copy for Blogs / Docs (Rich HTML)</button>
-            <button class="copy-btn copy-btn-markdown" id="copyMarkdownBtn">📋 Copy for Social Media (Markdown)</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANALYZE TAB -->
-      <div id="analyzeTab" class="tab-content" style="display:none;">
-        <div class="analyzer-card">
-          <h2>🔍 AI-Powered SEO Analyzer</h2>
+      <div class="form-card">
+        <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
+        <form id="generateForm">
           <div class="form-group">
-            <label>Paste your article content</label>
-            <textarea id="analyzeContent" rows="12" placeholder="Paste your article text here..."></textarea>
+            <label>Topic / Title</label>
+            <input type="text" id="topic" placeholder="e.g., How to start a freelance business" required>
           </div>
           <div class="form-group">
-            <label>Target Keywords (optional, comma separated)</label>
-            <input type="text" id="analyzeKeywords" placeholder="e.g., freelance, business">
+            <label>Target Keywords (comma separated)</label>
+            <input type="text" id="keywords" placeholder="freelance, business, startup" required>
           </div>
-          <button class="analyze-btn" id="analyzeBtn">🔍 Analyze with AI</button>
-          <div class="loading" id="analyzeLoading" style="display:none;">⏳ Analyzing... please wait (10‑20 sec)</div>
+          <div class="form-group">
+            <label>Tone</label>
+            <select id="tone">
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="persuasive">Persuasive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Length</label>
+            <select id="length">
+              <option value="short">Short (500 words)</option>
+              <option value="medium" selected>Medium (800–1200 words)</option>
+              <option value="long">Long (1500+ words)</option>
+            </select>
+          </div>
+          <button type="submit">🚀 Generate Article</button>
+        </form>
+        <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
+      </div>
+      <div class="result-card" id="resultCard" style="display:none;">
+        <h2>📝 Generated Content</h2>
+        <div class="meta-box">
+          <div class="meta-title" id="metaTitle"></div>
+          <div class="meta-desc" id="metaDesc"></div>
+          <div class="tags" id="tagsContainer"></div>
+          <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
         </div>
-        <div class="result-card" id="analyzeResult" style="display:none;">
-          <h2>📊 SEO Analysis Results</h2>
-          <div class="meta-box">
-            <div>SEO Score: <span class="score" id="analyzeScore"></span>/100</div>
-            <div>Word Count: <strong id="wordCount"></strong></div>
-            <div>Keyword Density: <strong id="keywordDensity"></strong>%</div>
-            <div>Readability (Flesch): <strong id="readability"></strong> (higher is better)</div>
-            <div>Headings: H1: <span id="h1Count">0</span>, H2: <span id="h2Count">0</span>, H3: <span id="h3Count">0</span></div>
-          </div>
-          <h3>💡 Suggestions</h3>
-          <ul class="suggestions-list" id="suggestionsList"></ul>
-          <h3>🔖 Suggested Meta Tags</h3>
-          <div class="meta-box">
-            <div><strong>Meta Title:</strong> <span id="suggestedTitle"></span></div>
-            <div><strong>Meta Description:</strong> <span id="suggestedDesc"></span></div>
-          </div>
-          <h3>🏷️ Related Keywords</h3>
-          <div class="tags" id="relatedKeywords"></div>
-          <h3>🔎 Sub‑Keywords</h3>
-          <div class="tags" id="subKeywords"></div>
-        </div>
+        <div id="articleContent"></div>
+        <button class="copy-btn" id="copyBtn">📋 Copy Article (Rich Text)</button>
       </div>
     </div>
   </div>
   <div class="app-footer">
-    © 2026 TeaJay Konsult Ltd. All rights reserved.
-  </div>
-
-  <!-- Profile Modal -->
-  <div id="profileModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeModal">&times;</span>
-      <h2>Edit Profile</h2>
-      <div class="form-group">
-        <label>Display Name</label>
-        <input type="text" id="displayNameInput" placeholder="Your name">
-      </div>
-      <div class="form-group">
-        <label>Profile Picture</label>
-        <input type="file" id="profilePicInput" accept="image/jpeg,image/png,image/jpg">
-        <img id="previewImage" class="profile-preview" src="https://via.placeholder.com/100" alt="Preview">
-      </div>
-      <button id="saveProfileBtn">Save Changes</button>
-    </div>
+    © 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult
   </div>
 
   <script>
-    // Firebase Config
+    // Firebase Config (your existing config – replace with your actual values if needed)
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -236,64 +253,25 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
+    const PAYSTACK_PUBLIC_KEY = "pk_test_..."; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
     let currentUser = null;
     let currentGenerations = [];
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
-    }
-
-    async function loadUserProfile() {
-      if (!currentUser) return;
-      try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        if (userDoc.exists) {
-          const data = userDoc.data();
-          const displayName = data.displayName || currentUser.email.split('@')[0];
-          document.getElementById('userDisplayName').textContent = displayName;
-          if (data.photoURL) {
-            document.getElementById('profilePic').src = data.photoURL;
-          } else {
-            document.getElementById('profilePic').src = 'https://via.placeholder.com/48';
-          }
-          const plan = data.plan || 'free';
-          let planLabel = 'Free', limit = 8;
-          if (plan === 'starter') { planLabel = 'Starter'; limit = 15; }
-          else if (plan === 'pro') { planLabel = 'Pro'; limit = 25; }
-          document.getElementById('userPlan').textContent = planLabel;
-          document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
-          document.getElementById('usageLimit').textContent = limit;
-        } else {
-          await db.collection('users').doc(currentUser.uid).set({
-            email: currentUser.email,
-            plan: 'free',
-            generationsUsedThisMonth: 0,
-            monthlyResetDate: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-          }, { merge: true });
-          document.getElementById('userDisplayName').textContent = currentUser.email.split('@')[0];
-        }
-      } catch (err) {
-        console.error('Error loading profile:', err);
-      }
-    }
 
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
         document.getElementById('userEmail').textContent = user.email;
-        await loadUserProfile();
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
+          document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
+          document.getElementById('usageLimit').textContent = data.plan === 'pro' ? '25' : '8';
+        }
         loadHistory();
       } else {
-        window.location.href = '/';
+        window.location.href = '/index.html';
       }
     });
 
@@ -304,9 +282,11 @@
         const snapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
           .orderBy('generatedAt', 'desc').get();
         currentGenerations = [];
-        snapshot.forEach(doc => currentGenerations.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach(doc => {
+          currentGenerations.push({ id: doc.id, ...doc.data() });
+        });
         if (currentGenerations.length === 0) {
-          historyDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">No generations yet. Create your first article!</div>';
+          historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No generations yet. Create your first article!</div>';
           return;
         }
         historyDiv.innerHTML = currentGenerations.map(gen => `
@@ -317,12 +297,15 @@
         `).join('');
         document.querySelectorAll('.history-item').forEach(el => {
           el.addEventListener('click', () => {
-            const id = el.dataset.id;
+            const id = el.getAttribute('data-id');
             const gen = currentGenerations.find(g => g.id === id);
             if (gen) displayGeneration(gen);
           });
         });
-      } catch (err) { console.error(err); historyDiv.innerHTML = '<div style="padding:20px; color:red;">Error loading history</div>'; }
+      } catch (err) {
+        console.error('Failed to load history:', err);
+        historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Error loading history</div>';
+      }
     }
 
     function displayGeneration(gen) {
@@ -330,18 +313,37 @@
       document.getElementById('metaTitle').textContent = result.metaTitle;
       document.getElementById('metaDesc').textContent = result.metaDescription;
       document.getElementById('seoScore').textContent = result.seoScore;
-      document.getElementById('tagsContainer').innerHTML = (result.suggestedTags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+      const tagsContainer = document.getElementById('tagsContainer');
+      tagsContainer.innerHTML = (result.suggestedTags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
       document.getElementById('articleContent').innerHTML = result.article;
       document.getElementById('resultCard').style.display = 'block';
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Generation form
-    const genForm = document.getElementById('generateForm');
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await auth.signOut();
+      window.location.href = '/index.html';
+    });
+
+    document.getElementById('upgradeBtn').addEventListener('click', () => {
+      if (!currentUser) return;
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: currentUser.email,
+        amount: 1500 * 100,
+        currency: 'NGN',
+        metadata: { userId: currentUser.uid, plan: 'pro' },
+        onSuccess: (transaction) => alert(`Payment successful! Reference: ${transaction.reference}`),
+        onCancel: () => alert('Payment cancelled.')
+      });
+    });
+
+    const form = document.getElementById('generateForm');
     const loadingDiv = document.getElementById('loading');
     const resultCard = document.getElementById('resultCard');
 
-    genForm.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentUser) return;
       const topic = document.getElementById('topic').value.trim();
@@ -363,17 +365,35 @@
         document.getElementById('metaTitle').textContent = data.metaTitle;
         document.getElementById('metaDesc').textContent = data.metaDescription;
         document.getElementById('seoScore').textContent = data.seoScore;
-        document.getElementById('tagsContainer').innerHTML = data.suggestedTags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+        const tagsContainer = document.getElementById('tagsContainer');
+        tagsContainer.innerHTML = data.suggestedTags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
         document.getElementById('articleContent').innerHTML = data.article;
         resultCard.style.display = 'block';
         loadHistory();
-        await loadUserProfile();
-      } catch (err) { alert('Error: ' + err.message); }
-      finally { loadingDiv.style.display = 'none'; }
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          document.getElementById('usageCount').textContent = userDoc.data().generationsUsedThisMonth || 0;
+        }
+      } catch (err) {
+        // SHOW THE EXACT ERROR IN AN ALERT
+        alert('Generation error: ' + err.message);
+        console.error(err);
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
     });
 
-    // Copy buttons
-    document.getElementById('copyHtmlBtn').addEventListener('click', async () => {
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    // Copy button logic (rich HTML)
+    document.getElementById('copyBtn').addEventListener('click', async () => {
       const articleHtml = document.getElementById('articleContent').innerHTML;
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = articleHtml;
@@ -383,178 +403,27 @@
       });
       let plainText = tempDiv.innerText.replace(/\n{3,}/g, '\n\n').trim();
       try {
-        await navigator.clipboard.write([new ClipboardItem({
-          'text/html': new Blob([articleHtml], { type: 'text/html' }),
-          'text/plain': new Blob([plainText], { type: 'text/plain' })
-        })]);
-        const btn = document.getElementById('copyHtmlBtn');
-        const orig = btn.innerHTML;
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([articleHtml], { type: 'text/html' }),
+            'text/plain': new Blob([plainText], { type: 'text/plain' })
+          })
+        ]);
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.innerHTML;
         btn.innerHTML = '✅ Copied (Rich HTML)';
-        setTimeout(() => btn.innerHTML = orig, 2000);
-      } catch { navigator.clipboard.writeText(plainText); }
-    });
-
-    document.getElementById('copyMarkdownBtn').addEventListener('click', async () => {
-      const html = document.getElementById('articleContent').innerHTML;
-      let md = html.replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n')
-        .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n')
-        .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n')
-        .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
-        .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
-        .replace(/<em>(.*?)<\/em>/gi, '*$1*')
-        .replace(/<ul>(.*?)<\/ul>/gis, (_,c) => c.replace(/<li>(.*?)<\/li>/g, '- $1\n') + '\n')
-        .replace(/<ol>(.*?)<\/ol>/gis, (_,c) => { let i=1; return c.replace(/<li>(.*?)<\/li>/g, () => `${i++}. $1\n`) + '\n'; })
-        .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
-      md = md.replace(/\n{3,}/g, '\n\n');
-      await navigator.clipboard.writeText(md);
-      const btn = document.getElementById('copyMarkdownBtn');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✅ Copied (Markdown)';
-      setTimeout(() => btn.innerHTML = orig, 2000);
-    });
-
-    // Upgrade
-    function upgrade(plan, amount) {
-      if (!currentUser) return;
-      const paystack = new PaystackPop();
-      paystack.newTransaction({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: currentUser.email,
-        amount: amount * 100,
-        currency: 'NGN',
-        metadata: { userId: currentUser.uid, plan: plan },
-        onSuccess: () => { alert('Payment successful! Reloading...'); setTimeout(() => location.reload(), 3000); },
-        onCancel: () => alert('Cancelled.')
-      });
-    }
-    document.getElementById('upgradeStarterBtn').addEventListener('click', () => upgrade('starter', 1000));
-    document.getElementById('upgradeProBtn').addEventListener('click', () => upgrade('pro', 1500));
-
-    // Home and Logout
-    document.getElementById('homeBtn').addEventListener('click', () => window.location.href = '/');
-    document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); window.location.href = '/'; });
-
-    // Profile modal logic (FIXED)
-    const modal = document.getElementById('profileModal');
-    const profileBtn = document.getElementById('profileBtn');
-    const closeModal = document.getElementById('closeModal');
-    const saveProfileBtn = document.getElementById('saveProfileBtn');
-
-    profileBtn.onclick = async () => {
-      try {
-        const doc = await db.collection('users').doc(currentUser.uid).get();
-        if (doc.exists) {
-          document.getElementById('displayNameInput').value = doc.data().displayName || '';
-          if (doc.data().photoURL) {
-            document.getElementById('previewImage').src = doc.data().photoURL;
-          } else {
-            document.getElementById('previewImage').src = 'https://via.placeholder.com/100';
-          }
-        }
-        modal.style.display = 'flex';
+        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
       } catch (err) {
-        console.error(err);
-        alert('Could not load profile data.');
+        navigator.clipboard.writeText(plainText);
       }
-    };
-    closeModal.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-
-    saveProfileBtn.onclick = async () => {
-      if (!currentUser) return;
-      const newName = document.getElementById('displayNameInput').value.trim();
-      const file = document.getElementById('profilePicInput').files[0];
-      let photoURL = null;
-      try {
-        if (file) {
-          const ref = storage.ref().child(`users/${currentUser.uid}/profile.jpg`);
-          const uploadTask = await ref.put(file);
-          photoURL = await uploadTask.ref.getDownloadURL();
-        }
-        const update = {};
-        if (newName) update.displayName = newName;
-        if (photoURL) update.photoURL = photoURL;
-        if (Object.keys(update).length) {
-          await db.collection('users').doc(currentUser.uid).set(update, { merge: true });
-          alert('Profile updated successfully!');
-          await loadUserProfile();
-        } else {
-          alert('No changes to save.');
-        }
-        modal.style.display = 'none';
-        document.getElementById('profilePicInput').value = '';
-      } catch (err) {
-        console.error('Save profile error:', err);
-        alert('Error saving profile: ' + err.message);
-      }
-    };
-
-    document.getElementById('profilePicInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => document.getElementById('previewImage').src = ev.target.result;
-        reader.readAsDataURL(file);
-      }
-    });
-
-    // Tab switching
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.dataset.tab;
-        document.getElementById('generateTab').style.display = tab === 'generate' ? 'block' : 'none';
-        document.getElementById('analyzeTab').style.display = tab === 'analyze' ? 'block' : 'none';
-      });
-    });
-
-    // AI Analyzer
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const analyzeLoading = document.getElementById('analyzeLoading');
-    const analyzeResult = document.getElementById('analyzeResult');
-
-    analyzeBtn.addEventListener('click', async () => {
-      const content = document.getElementById('analyzeContent').value.trim();
-      const targetKeywords = document.getElementById('analyzeKeywords').value.trim();
-      if (!content) { alert('Please paste your article content.'); return; }
-      analyzeLoading.style.display = 'block';
-      analyzeResult.style.display = 'none';
-      try {
-        const idToken = await currentUser.getIdToken();
-        const res = await fetch('/api/analyze-seo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({ content, targetKeywords })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Analysis failed');
-        document.getElementById('analyzeScore').textContent = data.score;
-        document.getElementById('wordCount').textContent = data.wordCount;
-        document.getElementById('keywordDensity').textContent = data.keywordDensity;
-        document.getElementById('readability').textContent = data.readability;
-        document.getElementById('h1Count').textContent = data.headings?.h1 || 0;
-        document.getElementById('h2Count').textContent = data.headings?.h2 || 0;
-        document.getElementById('h3Count').textContent = data.headings?.h3 || 0;
-        const suggestionsUl = document.getElementById('suggestionsList');
-        suggestionsUl.innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
-        document.getElementById('suggestedTitle').textContent = data.metaTitle || 'Not available';
-        document.getElementById('suggestedDesc').textContent = data.metaDescription || 'Not available';
-        const relatedDiv = document.getElementById('relatedKeywords');
-        relatedDiv.innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        const subDiv = document.getElementById('subKeywords');
-        subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        analyzeResult.style.display = 'block';
-      } catch (err) { alert('Error: ' + err.message); }
-      finally { analyzeLoading.style.display = 'none'; }
     });
 
     // Sidebar toggle
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
-    menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuToggle) {
         sidebar.classList.remove('open');
@@ -566,8 +435,8 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      const btn = document.getElementById('installBtn');
-      if (btn) btn.style.display = 'flex';
+      const installBtn = document.getElementById('installBtn');
+      if (installBtn) installBtn.style.display = 'flex';
     });
     document.getElementById('installBtn')?.addEventListener('click', async () => {
       if (deferredPrompt) {
@@ -578,7 +447,7 @@
       }
     });
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW failed:', err));
+      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
     }
   </script>
 </body>
