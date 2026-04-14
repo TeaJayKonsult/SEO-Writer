@@ -1,40 +1,38 @@
 // api/generate-seo.js
 const https = require('https');
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const admin = require('firebase-admin');
 
-// Initialize Firebase Admin SDK using the JSON from environment variable
-const adminJson = process.env.FIREBASE_ADMIN_JSON;
-if (!adminJson) {
-  console.error('FIREBASE_ADMIN_JSON environment variable not set');
-} else {
-  try {
-    const serviceAccount = JSON.parse(adminJson);
-    initializeApp({ credential: cert(serviceAccount) });
-  } catch (err) {
-    console.error('Failed to parse FIREBASE_ADMIN_JSON:', err.message);
-  }
+// Initialize Firebase Admin SDK (if not already initialized)
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_JSON);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
 }
-const db = getFirestore();
+const db = admin.firestore();
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Auth header and token verification (same as before)
+  // Get Firebase ID token from Authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing authorization token' });
   }
   const idToken = authHeader.split('Bearer ')[1];
 
+  // Verify token with Firebase REST API
   const firebaseApiKey = process.env.FIREBASE_API_KEY;
   if (!firebaseApiKey) {
     return res.status(500).json({ error: 'FIREBASE_API_KEY not configured' });
   }
 
-  let userId, email;
+  let userId;
   try {
     const verifyData = JSON.stringify({ idToken });
     const verifyRes = await new Promise((resolve, reject) => {
@@ -70,7 +68,6 @@ module.exports = async function handler(req, res) {
       request.end();
     });
     userId = verifyRes.localId;
-    email = verifyRes.email;
   } catch (err) {
     console.error('Token verification error:', err.message);
     return res.status(401).json({ error: 'Invalid token' });
@@ -88,75 +85,63 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Topic and keywords are required' });
   }
 
-  // --- RATE LIMITING (5 requests per minute per user) ---
-  const rateLimitRef = db.collection('users').doc(userId).collection('rateLimit').doc('requests');
-  const now = Date.now();
-  const oneMinuteAgo = now - 60 * 1000;
-
-  try {
-    await db.runTransaction(async (transaction) => {
-      const doc = await transaction.get(rateLimitRef);
-      let timestamps = doc.exists ? doc.data().timestamps || [] : [];
-      // Keep only timestamps within the last minute
-      timestamps = timestamps.filter(ts => ts > oneMinuteAgo);
-      if (timestamps.length >= 5) {
-        throw new Error('RATE_LIMIT_EXCEEDED');
-      }
-      timestamps.push(now);
-      transaction.set(rateLimitRef, { timestamps }, { merge: true });
-    });
-  } catch (err) {
-    if (err.message === 'RATE_LIMIT_EXCEEDED') {
-      return res.status(429).json({ error: 'Too many requests. Please wait a minute and try again.' });
-    }
-    console.error('Rate limit check error:', err);
-    // Fall through – allow request if rate limit check fails (avoid blocking users)
-  }
-
-  // --- Monthly usage limits (existing) ---
+  // Get user's plan and usage from Firestore
   const userRef = db.collection('users').doc(userId);
   const userDoc = await userRef.get();
   let userData = userDoc.exists ? userDoc.data() : null;
   if (!userData) {
-    const nowDate = new Date().toISOString();
+    // Create default user document
+    const now = new Date().toISOString();
     await userRef.set({
       plan: 'free',
       generationsUsedThisMonth: 0,
-      monthlyResetDate: nowDate,
-      createdAt: nowDate,
-      email: email
+      monthlyResetDate: now,
+      createdAt: now
     });
-    userData = { plan: 'free', generationsUsedThisMonth: 0, monthlyResetDate: nowDate };
+    userData = { plan: 'free', generationsUsedThisMonth: 0, monthlyResetDate: now };
   }
 
   // Monthly reset logic
   const lastReset = new Date(userData.monthlyResetDate);
-  const nowDate = new Date();
-  if (nowDate.getMonth() !== lastReset.getMonth() || nowDate.getFullYear() !== lastReset.getFullYear()) {
+  const now = new Date();
+  if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
     await userRef.update({
       generationsUsedThisMonth: 0,
-      monthlyResetDate: nowDate.toISOString()
+      monthlyResetDate: now.toISOString()
     });
     userData.generationsUsedThisMonth = 0;
-    userData.monthlyResetDate = nowDate.toISOString();
+    userData.monthlyResetDate = now.toISOString();
   }
 
-  const plan = userData.plan || 'free';
-  let limit = 8;
-  if (plan === 'starter') limit = 15;
-  else if (plan === 'pro') limit = 25;
-
+  const limit = userData.plan === 'pro' ? 25 : 8;
   if (userData.generationsUsedThisMonth >= limit) {
-    return res.status(429).json({ error: `Monthly limit reached (${limit}). Upgrade to continue.` });
+    return res.status(429).json({ error: `Monthly limit reached (${limit} generations). Upgrade to Pro for more.` });
   }
 
-  // --- Groq content generation (unchanged) ---
+  // Map length to word count
   let wordCount;
   if (length === 'short') wordCount = 500;
   else if (length === 'medium') wordCount = 1000;
   else wordCount = 1800;
 
-  const systemPrompt = `You are an expert SEO content writer...`; // (keep your existing prompt)
+  const systemPrompt = `You are an expert SEO content writer. Generate a high-quality, SEO-optimized article based on the user's input.
+
+Topic: ${topic}
+Target keywords: ${keywords}
+Tone: ${tone}
+Target length: approximately ${wordCount} words.
+
+Return a JSON object with the following structure:
+{
+  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, etc.)",
+  "metaTitle": "SEO title under 60 characters",
+  "metaDescription": "Meta description under 160 characters",
+  "suggestedTags": ["tag1", "tag2", "tag3"],
+  "seoScore": 85
+}
+
+The SEO score should be 0‑100 based on keyword usage, readability, and structure. Do not include any explanations outside the JSON.`;
+
   const userPrompt = `Write an SEO article about "${topic}" focusing on keywords: ${keywords}. Tone: ${tone}. Length: about ${wordCount} words.`;
 
   const groqApiKey = process.env.GROQ_API_KEY;
@@ -175,7 +160,6 @@ module.exports = async function handler(req, res) {
     response_format: { type: 'json_object' }
   });
 
-  let generatedContent;
   try {
     const groqResponse = await new Promise((resolve, reject) => {
       const options = {
@@ -205,22 +189,17 @@ module.exports = async function handler(req, res) {
       request.write(payload);
       request.end();
     });
-    generatedContent = JSON.parse(groqResponse.choices[0].message.content);
-  } catch (err) {
-    console.error('Groq generation error:', err.message);
-    return res.status(500).json({ error: 'AI generation failed' });
-  }
+    const content = groqResponse.choices[0].message.content;
+    const result = JSON.parse(content);
+    const finalResult = {
+      article: result.article || '<p>Failed to generate article.</p>',
+      metaTitle: result.metaTitle || `${topic} - SEO Writer`,
+      metaDescription: result.metaDescription || `Learn about ${topic} with our SEO-optimized content.`,
+      suggestedTags: Array.isArray(result.suggestedTags) ? result.suggestedTags : [],
+      seoScore: typeof result.seoScore === 'number' ? result.seoScore : 70
+    };
 
-  const result = {
-    article: generatedContent.article || '<p>Failed to generate article.</p>',
-    metaTitle: generatedContent.metaTitle || `${topic} - SEO Writer`,
-    metaDescription: generatedContent.metaDescription || `Learn about ${topic} with our SEO-optimized content.`,
-    suggestedTags: Array.isArray(generatedContent.suggestedTags) ? generatedContent.suggestedTags : [],
-    seoScore: typeof generatedContent.seoScore === 'number' ? generatedContent.seoScore : 70
-  };
-
-  // Save generation to Firestore and increment counter
-  try {
+    // Save generation to Firestore
     const generationRef = userRef.collection('generations').doc();
     await generationRef.set({
       topic,
@@ -228,14 +207,16 @@ module.exports = async function handler(req, res) {
       tone,
       length,
       generatedAt: new Date().toISOString(),
-      result: result
+      result: finalResult
     });
+    // Increment usage counter
     await userRef.update({
       generationsUsedThisMonth: userData.generationsUsedThisMonth + 1
     });
-  } catch (err) {
-    console.error('Failed to save generation:', err.message);
-  }
 
-  res.status(200).json(result);
+    res.status(200).json(finalResult);
+  } catch (err) {
+    console.error('Groq generation error:', err.message);
+    res.status(500).json({ error: 'AI generation failed' });
+  }
 };
