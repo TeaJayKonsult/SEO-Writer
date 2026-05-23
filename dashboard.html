@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Writer | Dashboard</title>
   <link rel="manifest" href="manifest.json">
+  <!-- jsPDF for PDF reports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -88,6 +90,7 @@
       gap: 8px;
       margin-bottom: 24px;
       border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
     }
     .tab-btn {
       background: none;
@@ -138,7 +141,7 @@
     .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
     .score { font-size: 24px; font-weight: 800; color: #0d9488; }
     .suggestions-list { margin-top: 12px; padding-left: 20px; color: #475569; }
-    .copy-btn {
+    .copy-btn, .pdf-btn {
       background: #0d9488;
       color: white;
       border: none;
@@ -150,6 +153,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      margin-right: 12px;
     }
     .fab {
       position: fixed;
@@ -169,6 +173,15 @@
       align-items: center;
       gap: 8px;
     }
+    .tip-box {
+      background: #fef9e3;
+      border-left: 5px solid #f59e0b;
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 20px;
+    }
+    .tip-box h4 { font-size: 16px; margin-bottom: 8px; color: #b45309; }
+    .tip-box p { font-size: 14px; color: #92400e; }
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
@@ -192,11 +205,11 @@
   <div class="app-header">
     <button class="menu-toggle" id="menuToggle">☰</button>
     <div class="brand">TeaJay Konsult Ltd.</div>
-    <h1>📄 SEO Writer</h1>
+    <h1>📄 SEO Suite</h1>
   </div>
   <div class="app-wrapper">
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">📜 Generation History</div>
+      <div class="sidebar-header">📜 History (Audits & Articles)</div>
       <div class="history-list" id="historyList">
         <div style="text-align:center; padding:20px; color:#64748b;">Loading history...</div>
       </div>
@@ -216,6 +229,7 @@
       <div class="dashboard-tabs">
         <button class="tab-btn active" data-tab="generate">✍️ Generate Article</button>
         <button class="tab-btn" data-tab="analyze">🔍 SEO Analyzer</button>
+        <button class="tab-btn" data-tab="siteaudit">🌐 Site Audit</button>
       </div>
 
       <!-- GENERATE TAB -->
@@ -261,6 +275,7 @@
           </div>
           <div id="articleContent"></div>
           <button class="copy-btn" id="copyBtn">📋 Copy Article (Rich HTML)</button>
+          <button class="pdf-btn" id="pdfGenBtn">📄 Save as PDF</button>
         </div>
       </div>
 
@@ -299,6 +314,53 @@
           <div class="tags" id="relatedKeywords"></div>
           <h3>🔎 Sub‑Keywords</h3>
           <div class="tags" id="subKeywords"></div>
+          <button class="pdf-btn" id="analyzePdfBtn">📄 Save Analysis as PDF</button>
+        </div>
+      </div>
+
+      <!-- SITE AUDIT TAB -->
+      <div id="siteauditTab" class="tab-content" style="display:none;">
+        <div class="analyzer-card">
+          <h2>🌐 Website SEO Audit</h2>
+          <p>Analyze any live URL for on‑page SEO, performance, and content quality.</p>
+          <div class="form-group">
+            <label>URL to audit</label>
+            <input type="url" id="auditUrl" placeholder="https://example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Target keywords (optional, comma separated)</label>
+            <input type="text" id="auditKeywords" placeholder="e.g., freelance, business">
+          </div>
+          <button class="analyze-btn" id="runAuditBtn">🔍 Run Site Audit</button>
+          <div class="loading" id="auditLoading" style="display:none;">⏳ Auditing... (may take 20‑40 seconds)</div>
+        </div>
+        <div class="result-card" id="auditResult" style="display:none;">
+          <h2>📊 Site Audit Report</h2>
+          <div class="meta-box">
+            <div><strong>Page Title:</strong> <span id="auditPageTitle"></span></div>
+            <div><strong>Meta Description:</strong> <span id="auditMetaDesc"></span></div>
+            <div><strong>Canonical URL:</strong> <span id="auditCanonical"></span></div>
+            <div><strong>Word Count:</strong> <span id="auditWordCount"></span></div>
+            <div><strong>Images missing alt text:</strong> <span id="auditMissingAlt"></span></div>
+            <div><strong>Internal links:</strong> <span id="auditInternalLinks"></span> | <strong>External links:</strong> <span id="auditExternalLinks"></span></div>
+            <div><strong>SEO Score (AI):</strong> <span class="score" id="auditSeoScore"></span>/100</div>
+            <div><strong>Readability Score:</strong> <span id="auditReadability"></span></div>
+            <div><strong>Keyword Density:</strong> <span id="auditKeywordDensity"></span>%</div>
+            <div><strong>Headings:</strong> H1: <span id="auditH1">0</span>, H2: <span id="auditH2">0</span>, H3: <span id="auditH3">0</span></div>
+          </div>
+          <div id="auditTipBox" class="tip-box" style="display:none;"></div>
+          <h3>💡 AI Suggestions</h3>
+          <ul class="suggestions-list" id="auditSuggestions"></ul>
+          <h3>🏷️ Related Keywords</h3>
+          <div class="tags" id="auditRelatedKeywords"></div>
+          <h3>🔎 Sub‑Keywords</h3>
+          <div class="tags" id="auditSubKeywords"></div>
+          <h3>🔖 Suggested Meta Tags</h3>
+          <div class="meta-box">
+            <div><strong>Meta Title:</strong> <span id="auditSuggestedTitle"></span></div>
+            <div><strong>Meta Description:</strong> <span id="auditSuggestedDesc"></span></div>
+          </div>
+          <button class="pdf-btn" id="auditPdfBtn">📄 Save Audit as PDF</button>
         </div>
       </div>
     </div>
@@ -308,7 +370,7 @@
   </div>
 
   <script>
-    // Firebase Config (same as index.html)
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -322,9 +384,11 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336"; // REPLACE WITH YOUR ACTUAL TEST PUBLIC KEY
+    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336";
     let currentUser = null;
     let currentGenerations = [];
+    let currentAnalyzeResult = null;   // store latest analysis result for PDF
+    let currentAuditResult = null;     // store latest audit result for PDF
 
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -356,27 +420,36 @@
       if (!currentUser) return;
       const historyDiv = document.getElementById('historyList');
       try {
-        const snapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
+        // Load both generations and audits
+        const genSnapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
           .orderBy('generatedAt', 'desc').get();
-        currentGenerations = [];
-        snapshot.forEach(doc => {
-          currentGenerations.push({ id: doc.id, ...doc.data() });
+        const auditSnapshot = await db.collection('users').doc(currentUser.uid).collection('audits')
+          .orderBy('auditedAt', 'desc').get();
+        let items = [];
+        genSnapshot.forEach(doc => {
+          items.push({ type: 'generation', id: doc.id, data: doc.data(), date: doc.data().generatedAt });
         });
-        if (currentGenerations.length === 0) {
-          historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No generations yet. Create your first article!</div>';
+        auditSnapshot.forEach(doc => {
+          items.push({ type: 'audit', id: doc.id, data: doc.data(), date: doc.data().auditedAt });
+        });
+        items.sort((a,b) => new Date(b.date) - new Date(a.date));
+        if (items.length === 0) {
+          historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No history yet.</div>';
           return;
         }
-        historyDiv.innerHTML = currentGenerations.map(gen => `
-          <div class="history-item" data-id="${gen.id}">
-            <div class="history-title">${escapeHtml(gen.topic.substring(0, 50))}</div>
-            <div class="history-date">${new Date(gen.generatedAt).toLocaleDateString()}</div>
+        historyDiv.innerHTML = items.map(item => `
+          <div class="history-item" data-type="${item.type}" data-id="${item.id}">
+            <div class="history-title">${item.type === 'generation' ? '📄 Article: ' + escapeHtml(item.data.topic.substring(0, 50)) : '🌐 Audit: ' + escapeHtml(item.data.url.substring(0, 50))}</div>
+            <div class="history-date">${new Date(item.date).toLocaleString()}</div>
           </div>
         `).join('');
         document.querySelectorAll('.history-item').forEach(el => {
           el.addEventListener('click', () => {
+            const type = el.getAttribute('data-type');
             const id = el.getAttribute('data-id');
-            const gen = currentGenerations.find(g => g.id === id);
-            if (gen) displayGeneration(gen);
+            const item = items.find(i => i.id === id);
+            if (type === 'generation') displayGeneration(item.data);
+            else displayAudit(item.data);
           });
         });
       } catch (err) {
@@ -395,6 +468,51 @@
       document.getElementById('articleContent').innerHTML = result.article;
       document.getElementById('resultCard').style.display = 'block';
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+      // Store current generation for PDF
+      currentAnalyzeResult = null;
+      window.currentGenForPdf = { metaTitle: result.metaTitle, metaDesc: result.metaDescription, seoScore: result.seoScore, article: result.article };
+    }
+
+    function displayAudit(auditData) {
+      // Populate audit result fields
+      document.getElementById('auditPageTitle').textContent = auditData.pageTitle || 'N/A';
+      document.getElementById('auditMetaDesc').textContent = auditData.metaDescription || 'N/A';
+      document.getElementById('auditCanonical').textContent = auditData.canonical || 'N/A';
+      document.getElementById('auditWordCount').textContent = auditData.wordCount;
+      document.getElementById('auditMissingAlt').textContent = auditData.missingAltCount;
+      document.getElementById('auditInternalLinks').textContent = auditData.internalLinks;
+      document.getElementById('auditExternalLinks').textContent = auditData.externalLinks;
+      document.getElementById('auditSeoScore').textContent = auditData.seoScore;
+      document.getElementById('auditReadability').textContent = auditData.readability;
+      document.getElementById('auditKeywordDensity').textContent = auditData.keywordDensity;
+      document.getElementById('auditH1').textContent = auditData.headings?.h1 || 0;
+      document.getElementById('auditH2').textContent = auditData.headings?.h2 || 0;
+      document.getElementById('auditH3').textContent = auditData.headings?.h3 || 0;
+      const suggestionsUl = document.getElementById('auditSuggestions');
+      suggestionsUl.innerHTML = (auditData.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+      const relatedDiv = document.getElementById('auditRelatedKeywords');
+      relatedDiv.innerHTML = (auditData.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+      const subDiv = document.getElementById('auditSubKeywords');
+      subDiv.innerHTML = (auditData.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+      document.getElementById('auditSuggestedTitle').textContent = auditData.metaTitle || 'N/A';
+      document.getElementById('auditSuggestedDesc').textContent = auditData.metaDescriptionSuggestion || 'N/A';
+      // Show tip box if score < 70
+      const tipBox = document.getElementById('auditTipBox');
+      if (auditData.seoScore < 70) {
+        let tipMessage = '';
+        if (auditData.missingAltCount > 0) tipMessage += `🚫 Add alt text to ${auditData.missingAltCount} images. `;
+        if (auditData.wordCount < 300) tipMessage += `📄 Increase content length (currently ${auditData.wordCount} words). `;
+        if (auditData.headings?.h1 === 0) tipMessage += `🔖 Use an H1 heading. `;
+        if (auditData.keywordDensity < 0.5) tipMessage += `🔑 Increase keyword density (target 1-2%). `;
+        if (auditData.readability < 50) tipMessage += `📖 Improve readability: shorter sentences, simpler words. `;
+        if (!tipMessage) tipMessage = `🎯 Focus on the AI suggestions above to boost your SEO score.`;
+        tipBox.innerHTML = `<h4>💪 Boost Your Score</h4><p>${tipMessage}</p>`;
+        tipBox.style.display = 'block';
+      } else {
+        tipBox.style.display = 'none';
+      }
+      document.getElementById('auditResult').style.display = 'block';
+      currentAuditResult = auditData;
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -455,9 +573,9 @@
         if (userDoc.exists) {
           document.getElementById('usageCount').textContent = userDoc.data().generationsUsedThisMonth || 0;
         }
+        window.currentGenForPdf = { metaTitle: data.metaTitle, metaDesc: data.metaDescription, seoScore: data.seoScore, article: data.article };
       } catch (err) {
         alert('Error: ' + err.message);
-        console.error(err);
       } finally {
         loadingDiv.style.display = 'none';
       }
@@ -499,9 +617,9 @@
         const subDiv = document.getElementById('subKeywords');
         subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
         analyzeResult.style.display = 'block';
+        currentAnalyzeResult = data;
       } catch (err) {
         alert('Error: ' + err.message);
-        console.error(err);
       } finally {
         analyzeLoading.style.display = 'none';
       }
@@ -533,6 +651,119 @@
       }
     });
 
+    // PDF Generation Helper
+    async function generatePDF(content, title) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text(title, 10, 10);
+      doc.setFontSize(12);
+      const splitText = doc.splitTextToSize(content, 180);
+      doc.text(splitText, 10, 20);
+      doc.save(`${title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+    }
+
+    document.getElementById('pdfGenBtn').addEventListener('click', () => {
+      if (window.currentGenForPdf) {
+        const content = `Title: ${window.currentGenForPdf.metaTitle}\nSEO Score: ${window.currentGenForPdf.seoScore}\n\n${window.currentGenForPdf.article.replace(/<[^>]*>/g, '')}`;
+        generatePDF(content, 'SEO_Article');
+      } else {
+        alert('No article generated yet.');
+      }
+    });
+
+    document.getElementById('analyzePdfBtn').addEventListener('click', () => {
+      if (currentAnalyzeResult) {
+        const content = `SEO Score: ${currentAnalyzeResult.score}\nWord Count: ${currentAnalyzeResult.wordCount}\nKeyword Density: ${currentAnalyzeResult.keywordDensity}%\nReadability: ${currentAnalyzeResult.readability}\nHeadings: H1=${currentAnalyzeResult.headings?.h1||0}, H2=${currentAnalyzeResult.headings?.h2||0}, H3=${currentAnalyzeResult.headings?.h3||0}\nSuggestions: ${(currentAnalyzeResult.suggestions || []).join(', ')}\nMeta Title: ${currentAnalyzeResult.metaTitle}\nMeta Description: ${currentAnalyzeResult.metaDescription}`;
+        generatePDF(content, 'SEO_Analysis');
+      } else {
+        alert('No analysis performed yet.');
+      }
+    });
+
+    document.getElementById('auditPdfBtn').addEventListener('click', () => {
+      if (currentAuditResult) {
+        const content = `URL: ${currentAuditResult.url || 'N/A'}\nPage Title: ${currentAuditResult.pageTitle}\nSEO Score: ${currentAuditResult.seoScore}\nWord Count: ${currentAuditResult.wordCount}\nMissing Alt: ${currentAuditResult.missingAltCount}\nInternal Links: ${currentAuditResult.internalLinks}\nExternal Links: ${currentAuditResult.externalLinks}\nReadability: ${currentAuditResult.readability}\nKeyword Density: ${currentAuditResult.keywordDensity}%\nSuggestions: ${(currentAuditResult.suggestions || []).join(', ')}\nRelated Keywords: ${(currentAuditResult.relatedKeywords || []).join(', ')}\nMeta Title Suggestion: ${currentAuditResult.metaTitle}`;
+        generatePDF(content, 'Site_Audit');
+      } else {
+        alert('No audit performed yet.');
+      }
+    });
+
+    // SITE AUDIT LOGIC
+    const runAuditBtn = document.getElementById('runAuditBtn');
+    const auditLoading = document.getElementById('auditLoading');
+    const auditResultDiv = document.getElementById('auditResult');
+
+    runAuditBtn.addEventListener('click', async () => {
+      const url = document.getElementById('auditUrl').value.trim();
+      const keywords = document.getElementById('auditKeywords').value.trim();
+      if (!url) { alert('Please enter a valid URL.'); return; }
+      auditLoading.style.display = 'block';
+      auditResultDiv.style.display = 'none';
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/site-audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({ url, targetKeywords: keywords })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Audit failed');
+        // Populate results
+        document.getElementById('auditPageTitle').textContent = data.pageTitle || 'N/A';
+        document.getElementById('auditMetaDesc').textContent = data.metaDescription || 'N/A';
+        document.getElementById('auditCanonical').textContent = data.canonical || 'N/A';
+        document.getElementById('auditWordCount').textContent = data.wordCount;
+        document.getElementById('auditMissingAlt').textContent = data.missingAltCount;
+        document.getElementById('auditInternalLinks').textContent = data.internalLinks;
+        document.getElementById('auditExternalLinks').textContent = data.externalLinks;
+        document.getElementById('auditSeoScore').textContent = data.seoScore;
+        document.getElementById('auditReadability').textContent = data.readability;
+        document.getElementById('auditKeywordDensity').textContent = data.keywordDensity;
+        document.getElementById('auditH1').textContent = data.headings?.h1 || 0;
+        document.getElementById('auditH2').textContent = data.headings?.h2 || 0;
+        document.getElementById('auditH3').textContent = data.headings?.h3 || 0;
+        const suggestionsUl = document.getElementById('auditSuggestions');
+        suggestionsUl.innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+        const relatedDiv = document.getElementById('auditRelatedKeywords');
+        relatedDiv.innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+        const subDiv = document.getElementById('auditSubKeywords');
+        subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+        document.getElementById('auditSuggestedTitle').textContent = data.metaTitle || 'N/A';
+        document.getElementById('auditSuggestedDesc').textContent = data.metaDescriptionSuggestion || 'N/A';
+        // Tip box for low score
+        const tipBox = document.getElementById('auditTipBox');
+        if (data.seoScore < 70) {
+          let tipMessage = '';
+          if (data.missingAltCount > 0) tipMessage += `🚫 Add alt text to ${data.missingAltCount} images. `;
+          if (data.wordCount < 300) tipMessage += `📄 Increase content length (currently ${data.wordCount} words). `;
+          if (data.headings?.h1 === 0) tipMessage += `🔖 Use an H1 heading. `;
+          if (data.keywordDensity < 0.5) tipMessage += `🔑 Increase keyword density (target 1-2%). `;
+          if (data.readability < 50) tipMessage += `📖 Improve readability: shorter sentences, simpler words. `;
+          if (!tipMessage) tipMessage = `🎯 Focus on the AI suggestions above to boost your SEO score.`;
+          tipBox.innerHTML = `<h4>💪 Boost Your Score</h4><p>${tipMessage}</p>`;
+          tipBox.style.display = 'block';
+        } else {
+          tipBox.style.display = 'none';
+        }
+        auditResultDiv.style.display = 'block';
+        currentAuditResult = data;
+        // Save audit to Firestore
+        await db.collection('users').doc(currentUser.uid).collection('audits').add({
+          url,
+          targetKeywords: keywords,
+          auditedAt: new Date().toISOString(),
+          ...data
+        });
+        loadHistory(); // refresh sidebar
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        auditLoading.style.display = 'none';
+      }
+    });
+
     // TAB SWITCHING
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -541,6 +772,7 @@
         const tab = btn.getAttribute('data-tab');
         document.getElementById('generateTab').style.display = tab === 'generate' ? 'block' : 'none';
         document.getElementById('analyzeTab').style.display = tab === 'analyze' ? 'block' : 'none';
+        document.getElementById('siteauditTab').style.display = tab === 'siteaudit' ? 'block' : 'none';
       });
     });
 
