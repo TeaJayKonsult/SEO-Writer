@@ -2,363 +2,742 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEO Writer Pro | AI-Powered SEO Content & AIEO Optimization</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="description" content="Generate SEO-optimized articles, AIEO-optimized content, meta tags, keyword suggestions, and get real‑time SEO scores with advanced EEAT and Humanization modes.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1B1B1B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="SEOWriter Pro — Write content that ranks. AI-powered SEO writing with EEAT enhancement, AIEO optimization, and real-time scores.">
+  <meta property="og:title" content="SEOWriter Pro by TeaJay Konsult">
+  <meta property="og:description" content="Write content that ranks on Google & AI Search.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://the-seo-writer.vercel.app">
+  <title>SEOWriter Pro — Write Content That Ranks</title>
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU0VPV3JpdGVyIFBybyIsInNob3J0X25hbWUiOiJTRU9Xcml0ZXIiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0ZBRjhGNSIsInRoZW1lX2NvbG9yIjoiIzFCMUIxQiIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi5pY29uc2NvdXQuY29tL2w4L3BuZy82NC82NC82NDcwODQtcGVuLWFuZC1wYXBlci0yLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a1f12, #0f2d1a);
-      color: #e2e8f0;
-      min-height: 100vh;
+    :root {
+      --cream: #FAF8F5;
+      --cream-dark: #F2EEE8;
+      --charcoal: #1B1B1B;
+      --charcoal-light: #2D2D2D;
+      --warm-gray: #6B6560;
+      --light-gray: #E8E4DE;
+      --teal: #2D6A4F;
+      --teal-light: #40916C;
+      --teal-pale: #D8F3DC;
+      --coral: #C06C4F;
+      --coral-light: #E07A5F;
+      --coral-pale: #FCE8E0;
+      --amber: #D4A373;
+      --amber-pale: #FAEDCD;
+      --white: #FFFFFF;
+      --shadow-soft: 0 4px 24px rgba(27,27,27,0.06);
+      --shadow-medium: 0 8px 40px rgba(27,27,27,0.10);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
     }
-    .header {
-      background: rgba(15, 22, 40, 0.8);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,212,255,0.2);
-      padding: 20px 32px;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .tj-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(250,248,245,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--light-gray);
+      transition: all 0.3s ease;
+    }
+    .tj-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tj-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .tj-brand-icon {
+      width: 36px; height: 36px;
+      background: var(--teal);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+    .tj-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .tj-brand-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--charcoal);
+      line-height: 1.1;
+    }
+    .tj-brand-sub {
+      font-size: 10px;
+      color: var(--warm-gray);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .tj-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tj-nav a {
+      text-decoration: none;
+      color: var(--warm-gray);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .tj-nav a:hover { color: var(--charcoal); background: var(--cream-dark); }
+    .tj-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+    .tj-btn-primary {
+      background: var(--charcoal);
+      color: var(--cream);
+      box-shadow: var(--shadow-soft);
+    }
+    .tj-btn-primary:hover {
+      background: var(--charcoal-light);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-medium);
+    }
+    .tj-btn-outline {
+      background: transparent;
+      color: var(--charcoal);
+      border: 1.5px solid var(--light-gray);
+    }
+    .tj-btn-outline:hover {
+      border-color: var(--charcoal);
+      background: var(--white);
+    }
+    .tj-btn-coral {
+      background: var(--coral);
+      color: white;
+      box-shadow: 0 4px 20px rgba(192,108,79,0.25);
+    }
+    .tj-btn-coral:hover {
+      background: var(--coral-light);
+      transform: translateY(-1px);
+    }
+
+    /* ====== HERO ====== */
+    .hero {
+      padding: 140px 20px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      min-height: 90vh;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--teal-pale);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      letter-spacing: 0.3px;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      background: var(--teal);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--charcoal);
+      margin-bottom: 20px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--teal);
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--warm-gray);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 32px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .hero-trust-avatars {
+      display: flex;
+    }
+    .hero-trust-avatars img {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--cream);
+      margin-left: -10px;
+      object-fit: cover;
+    }
+    .hero-trust-avatars img:first-child { margin-left: 0; }
+    .hero-trust-text {
+      font-size: 13px;
+      color: var(--warm-gray);
+    }
+    .hero-trust-text strong { color: var(--charcoal); font-weight: 600; }
+
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .hero-mockup {
+      width: 100%;
+      max-width: 520px;
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-medium);
+      padding: 28px;
+      border: 1px solid var(--light-gray);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-mockup::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 180px; height: 180px;
+      background: var(--amber-pale);
+      border-radius: 50%;
+      opacity: 0.6;
+      filter: blur(40px);
+    }
+    .hero-mockup::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: -40px;
+      width: 140px; height: 140px;
+      background: var(--teal-pale);
+      border-radius: 50%;
+      opacity: 0.5;
+      filter: blur(40px);
+    }
+    .mockup-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .mockup-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .mockup-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .mockup-dots span:nth-child(1) { background: #E07A5F; }
+    .mockup-dots span:nth-child(2) { background: #F2CC8F; }
+    .mockup-dots span:nth-child(3) { background: #81B29A; }
+    .mockup-title { font-size: 12px; color: var(--warm-gray); font-weight: 500; }
+    .mockup-body { position: relative; z-index: 1; }
+    .mockup-score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      background: var(--cream);
+      border-radius: var(--radius-md);
+    }
+    .score-ring {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: conic-gradient(var(--teal) 0deg 324deg, var(--light-gray) 324deg);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .score-ring::before {
+      content: '';
+      width: 36px; height: 36px;
+      background: var(--cream);
+      border-radius: 50%;
+      position: absolute;
+    }
+    .score-ring span {
+      position: relative;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+    .score-info h4 { font-size: 13px; font-weight: 600; color: var(--charcoal); }
+    .score-info p { font-size: 11px; color: var(--warm-gray); margin: 0; }
+    .mockup-article {
+      background: var(--cream);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .mockup-article h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--charcoal);
+    }
+    .mockup-article p {
+      font-size: 12px;
+      color: var(--warm-gray);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .mockup-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .mockup-tag {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-weight: 500;
+    }
+    .mockup-tag.teal { background: var(--teal-pale); color: var(--teal); }
+    .mockup-tag.coral { background: var(--coral-pale); color: var(--coral); }
+    .mockup-tag.amber { background: var(--amber-pale); color: #9C6644; }
+
+    /* ====== FEATURES ====== */
+    .features {
+      padding: 80px 20px;
+      background: var(--white);
+    }
+    .features-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 60px;
+    }
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--charcoal);
+    }
+    .section-header p {
+      font-size: 16px;
+      color: var(--warm-gray);
+      line-height: 1.7;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--cream);
+      border: 1px solid var(--light-gray);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--teal);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-medium);
+      border-color: transparent;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .feature-card:nth-child(1) .feature-icon { background: var(--teal-pale); }
+    .feature-card:nth-child(2) .feature-icon { background: var(--coral-pale); }
+    .feature-card:nth-child(3) .feature-icon { background: var(--amber-pale); }
+    .feature-card:nth-child(4) .feature-icon { background: #E0E7FF; }
+    .feature-card:nth-child(5) .feature-icon { background: #F3E8FF; }
+    .feature-card:nth-child(6) .feature-icon { background: #DCFCE7; }
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--charcoal);
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--warm-gray);
+      line-height: 1.6;
+    }
+
+    /* ====== HOW IT WORKS ====== */
+    .how-it-works {
+      padding: 80px 20px;
+      background: var(--cream);
+    }
+    .how-inner { max-width: 1200px; margin: 0 auto; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 50px;
+    }
+    .step {
+      text-align: center;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      right: -20px;
+      width: 40px;
+      height: 2px;
+      background: var(--light-gray);
+    }
+    .step-number {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 2px solid var(--light-gray);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--teal);
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .step h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--charcoal);
+    }
+    .step p {
+      font-size: 13px;
+      color: var(--warm-gray);
+      line-height: 1.6;
+    }
+
+    /* ====== CTA ====== */
+    .cta-section {
+      padding: 100px 20px;
+      background: var(--charcoal);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: var(--teal);
+      border-radius: 50%;
+      opacity: 0.08;
+      filter: blur(80px);
+    }
+    .cta-section::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      background: var(--coral);
+      border-radius: 50%;
+      opacity: 0.06;
+      filter: blur(80px);
+    }
+    .cta-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-inner h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 16px;
+    }
+    .cta-inner p {
+      font-size: 17px;
+      color: rgba(250,248,245,0.65);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    /* ====== FOOTER ====== */
+    .footer {
+      background: var(--charcoal);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 50px 20px 30px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-brand-icon {
+      width: 32px; height: 32px;
+      background: var(--teal);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-size: 14px;
+    }
+    .footer-brand-text {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--cream);
+    }
+    .footer-links {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .footer-links h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(250,248,245,0.4);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .footer-links a {
+      display: block;
+      color: rgba(250,248,245,0.55);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 10px;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .footer-links a:hover { color: var(--cream); }
+    .footer-share {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .share-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(250,248,245,0.6);
+      font-size: 15px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .share-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: var(--cream);
+      transform: translateY(-2px);
+    }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo h1 {
-      font-size: 24px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #00d4ff, #0099bb);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    .logo p {
-      font-size: 12px;
-      color: #8892a4;
-      margin-top: 4px;
-    }
-    .nav-buttons {
-      display: flex;
       gap: 12px;
     }
-    .btn-outline {
-      background: transparent;
-      border: 1.5px solid rgba(0,212,255,0.4);
-      color: #00d4ff;
-      padding: 8px 20px;
-      border-radius: 40px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-outline:hover {
-      border-color: #00d4ff;
-      background: rgba(0,212,255,0.1);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #0099bb, #00d4ff);
-      border: none;
-      color: #000;
-      padding: 8px 24px;
-      border-radius: 40px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(0,212,255,0.3);
-    }
-    .hero {
-      padding: 80px 32px;
-      text-align: center;
-      background: radial-gradient(circle at 20% 30%, rgba(0,212,255,0.06), transparent 70%);
-    }
-    .hero h1 {
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 800;
-      margin-bottom: 20px;
-      line-height: 1.2;
-    }
-    .hero h1 span {
-      color: #00d4ff;
-    }
-    .hero p {
-      font-size: 18px;
-      color: #94a3b8;
-      max-width: 700px;
-      margin: 0 auto 32px;
-      line-height: 1.7;
-    }
-    .hero .features-highlight {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      justify-content: center;
-      margin-bottom: 40px;
-    }
-    .hero .features-highlight .pill {
-      background: rgba(0,212,255,0.08);
-      border: 1px solid rgba(0,212,255,0.15);
-      border-radius: 40px;
-      padding: 6px 18px;
+    .footer-bottom p {
       font-size: 13px;
-      font-weight: 500;
-      color: #00d4ff;
-    }
-    .cta-buttons {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .features {
-      padding: 60px 32px;
-      background: rgba(15, 22, 40, 0.5);
-      backdrop-filter: blur(8px);
-      border-top: 1px solid rgba(0,212,255,0.08);
-      border-bottom: 1px solid rgba(0,212,255,0.08);
-    }
-    .features .section-title {
-      text-align: center;
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 48px;
-    }
-    .features .section-title span {
-      color: #00d4ff;
-    }
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 28px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .feature-card {
-      background: rgba(20, 29, 53, 0.5);
-      border: 1px solid rgba(0,212,255,0.12);
-      border-radius: 20px;
-      padding: 28px;
-      text-align: center;
-      transition: all 0.2s;
-      backdrop-filter: blur(4px);
-    }
-    .feature-card:hover {
-      border-color: rgba(0,212,255,0.3);
-      transform: translateY(-4px);
-    }
-    .feature-icon {
-      font-size: 38px;
-      margin-bottom: 14px;
-    }
-    .feature-card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: #fff;
-    }
-    .feature-card p {
-      font-size: 14px;
-      color: #94a3b8;
-      line-height: 1.6;
-    }
-    .feature-card .tag {
-      display: inline-block;
-      background: rgba(0,212,255,0.1);
-      border: 1px solid rgba(0,212,255,0.15);
-      color: #00d4ff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 12px;
-      border-radius: 40px;
-      margin-top: 10px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    .pricing {
-      padding: 60px 32px;
-      background: rgba(0,0,0,0.2);
-    }
-    .pricing .section-title {
-      text-align: center;
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 48px;
-    }
-    .pricing .section-title span {
-      color: #00d4ff;
-    }
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 32px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    .pricing-card {
-      background: rgba(20, 29, 53, 0.6);
-      border-radius: 24px;
-      padding: 32px;
-      text-align: center;
-      border: 1px solid rgba(0,212,255,0.12);
-      backdrop-filter: blur(4px);
-    }
-    .pricing-card.popular {
-      border: 2px solid #00d4ff;
-      position: relative;
-    }
-    .popular-badge {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #00d4ff;
-      color: #000;
-      padding: 4px 16px;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 800;
-    }
-    .price {
-      font-size: 36px;
-      font-weight: 800;
-      color: #00d4ff;
-      margin: 20px 0;
-    }
-    .price span {
-      font-size: 16px;
-      font-weight: 400;
-      color: #94a3b8;
-    }
-    .pricing-card ul {
-      list-style: none;
-      margin: 24px 0;
-      text-align: left;
-    }
-    .pricing-card li {
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #cbd5e1;
-    }
-    .pricing-card li::before {
-      content: "✓";
-      color: #00d4ff;
-      font-weight: 800;
-    }
-    .btn-pricing {
-      background: linear-gradient(135deg, #0099bb, #00d4ff);
-      color: #000;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 40px;
-      font-weight: 700;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 16px;
-    }
-    .footer {
-      background: rgba(15, 22, 40, 0.8);
-      text-align: center;
-      padding: 32px;
-      font-size: 12px;
-      color: #64748b;
-      border-top: 1px solid rgba(0,212,255,0.1);
+      color: rgba(250,248,245,0.35);
     }
 
-    /* AUTH MODAL */
+    /* ====== AUTH MODAL (styled for new UI) ====== */
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(27,27,27,0.6);
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 2000;
       justify-content: center;
       align-items: center;
+      padding: 20px;
     }
     .modal-content {
-      background: rgba(15, 22, 40, 0.95);
-      backdrop-filter: blur(16px);
+      background: var(--white);
       max-width: 420px;
-      width: 90%;
-      padding: 32px;
-      border-radius: 32px;
-      border: 1px solid rgba(0,212,255,0.2);
+      width: 100%;
+      padding: 40px 32px;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-medium);
       position: relative;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      max-height: 90vh;
+      overflow-y: auto;
     }
-    .close-modal {
+    .modal-close {
       position: absolute;
       top: 16px;
       right: 20px;
       font-size: 24px;
       cursor: pointer;
-      color: #94a3b8;
+      color: var(--warm-gray);
       transition: color 0.2s;
+      background: none;
+      border: none;
     }
-    .close-modal:hover {
-      color: #fff;
-    }
+    .modal-close:hover { color: var(--charcoal); }
     .modal h2 {
-      margin-bottom: 20px;
-      text-align: center;
-      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
       font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--charcoal);
+    }
+    .modal .subtitle {
+      font-size: 14px;
+      color: var(--warm-gray);
+      margin-bottom: 24px;
     }
     .modal .tab {
       display: flex;
       gap: 12px;
       margin-bottom: 24px;
-      border-bottom: 1px solid #2d3a5e;
+      border-bottom: 2px solid var(--light-gray);
     }
     .modal .tab button {
       flex: 1;
       background: none;
       border: none;
-      padding: 10px;
+      padding: 12px 0;
       font-weight: 600;
       cursor: pointer;
-      color: #94a3b8;
+      color: var(--warm-gray);
       font-size: 14px;
       transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
     }
     .modal .tab button.active {
-      color: #00d4ff;
-      border-bottom: 2px solid #00d4ff;
+      color: var(--teal);
+      border-bottom-color: var(--teal);
     }
     .modal .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+    }
+    .modal .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: 4px;
     }
     .modal input {
       width: 100%;
       padding: 12px 14px;
-      border: 1.5px solid #2d3a5e;
-      border-radius: 16px;
-      background: rgba(20,29,53,0.7);
-      color: #fff;
-      font-size: 15px;
-      outline: none;
+      border: 1.5px solid var(--light-gray);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
       transition: border-color 0.2s;
+      background: var(--cream);
     }
     .modal input:focus {
-      border-color: #00d4ff;
-    }
-    .modal input::placeholder {
-      color: #64748b;
+      outline: none;
+      border-color: var(--teal);
     }
     .modal .password-wrapper {
       position: relative;
@@ -374,66 +753,72 @@
       background: none;
       border: none;
       cursor: pointer;
-      color: #94a3b8;
+      color: var(--warm-gray);
       font-size: 18px;
-      transition: color 0.2s;
     }
-    .modal .password-toggle:hover {
-      color: #fff;
+    .modal .password-toggle:hover { color: var(--charcoal); }
+    .modal .forgot-link {
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 18px;
     }
-    .modal button[type="submit"] {
+    .modal .forgot-link a {
+      color: var(--teal);
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .modal .forgot-link a:hover { text-decoration: underline; }
+    .modal .tj-btn-submit {
       width: 100%;
-      background: linear-gradient(135deg, #0099bb, #00d4ff);
-      color: #000;
+      padding: 14px;
+      background: var(--charcoal);
+      color: var(--cream);
       border: none;
-      padding: 12px;
-      border-radius: 40px;
-      font-weight: 700;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 15px;
+      font-family: 'Inter', sans-serif;
     }
-    .modal button[type="submit"]:hover {
-      transform: translateY(-2px);
+    .modal .tj-btn-submit:hover {
+      background: var(--charcoal-light);
+      transform: translateY(-1px);
     }
-    .message {
+    .modal .message {
       margin-top: 12px;
       font-size: 13px;
       text-align: center;
     }
-    .message.error {
-      color: #ff4757;
-    }
-    .message.success {
-      color: #2ed573;
-    }
-    .hidden {
-      display: none;
-    }
-    .social-divider {
+    .modal .message.error { color: var(--coral); }
+    .modal .message.success { color: var(--teal); }
+    .modal .hidden { display: none; }
+    .modal .social-divider {
       display: flex;
       align-items: center;
       gap: 16px;
-      margin: 16px 0;
+      margin: 20px 0;
     }
-    .social-divider::before,
-    .social-divider::after {
+    .modal .social-divider::before,
+    .modal .social-divider::after {
       content: '';
       flex: 1;
       height: 1px;
-      background: #2d3a5e;
+      background: var(--light-gray);
     }
-    .social-divider span {
+    .modal .social-divider span {
       font-size: 12px;
-      color: #64748b;
+      color: var(--warm-gray);
     }
-    .google-btn {
+    .modal .google-btn {
       width: 100%;
       padding: 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid #2d3a5e;
-      border-radius: 40px;
-      color: #fff;
+      background: var(--cream);
+      border: 1.5px solid var(--light-gray);
+      border-radius: var(--radius-md);
+      font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -441,368 +826,569 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      font-size: 14px;
+      color: var(--charcoal);
+      font-family: 'Inter', sans-serif;
     }
-    .google-btn:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: #00d4ff;
+    .modal .google-btn:hover {
+      background: var(--white);
+      border-color: var(--charcoal);
     }
-    @media (max-width: 768px) {
-      .header { flex-direction: column; text-align: center; padding: 16px; }
-      .hero { padding: 40px 20px; }
-      .features { padding: 40px 20px; }
-      .hero .features-highlight .pill { font-size: 11px; padding: 4px 12px; }
+    .modal .google-btn svg { width: 20px; height: 20px; }
+
+    /* ====== INSTALL ====== */
+    #install-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999;
+      background: var(--teal);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(45,106,79,0.3);
+      display: none;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s;
     }
+    #install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(45,106,79,0.4);
+    }
+    #install-btn.show { display: inline-flex; }
+
+    .ios-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--charcoal);
+      color: var(--cream);
+      padding: 14px 20px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 13px;
+      z-index: 998;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .ios-banner.show { display: flex; }
+    .ios-banner button {
+      background: var(--teal);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 50px;
+        padding-top: 120px;
+        text-align: center;
+      }
+      .hero p { margin: 0 auto 32px; }
+      .hero-actions { justify-content: center; }
+      .hero-trust { justify-content: center; }
+      .hero-visual { order: -1; }
+      .hero-mockup { max-width: 400px; margin: 0 auto; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .step:not(:last-child)::after { display: none; }
+    }
+    @media (max-width: 600px) {
+      .tj-nav { display: none; }
+      .steps { grid-template-columns: 1fr; }
+      .footer-top { flex-direction: column; }
+      .footer-links { gap: 24px; }
+      .hero h1 { font-size: 34px; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: fadeInUp 0.7s ease forwards; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="logo">
-      <h1>📄 SEO<span>Writer Pro</span></h1>
-      <p>by TeaJay Konsult</p>
+<header class="tj-header">
+  <div class="tj-header-inner">
+    <div class="tj-brand" onclick="location.reload()">
+      <div class="tj-brand-icon">✍️</div>
+      <div class="tj-brand-text">
+        <span class="tj-brand-name">SEOWriter Pro</span>
+        <span class="tj-brand-sub">by TeaJay Konsult</span>
+      </div>
     </div>
-    <div class="nav-buttons">
-      <button class="btn-outline" id="landingSigninBtn">Sign In</button>
-      <button class="btn-primary" id="landingSignupBtn">Sign Up</button>
+    <nav class="tj-nav">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#" onclick="openModal(true); return false;" style="padding:8px 18px; font-size:13px; border:1.5px solid var(--light-gray); border-radius:var(--radius-sm);">Sign In</a>
+      <a href="#" onclick="openModal(false); return false;" style="padding:8px 18px; font-size:13px; background:var(--charcoal); color:var(--cream); border-radius:var(--radius-sm); font-weight:600;">Sign Up</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ====== HERO ====== -->
+<section class="hero">
+  <div class="hero-content animate-in">
+    <div class="hero-badge"><span class="dot"></span> Now with AIEO & EEAT Scoring</div>
+    <h1>Write Content That <em>Actually</em> Ranks</h1>
+    <p>The SEO writing platform built for content marketers, agencies, and bloggers who refuse to sound like a robot. Human-first articles, optimized for Google and AI search.</p>
+    <div class="hero-actions">
+      <a href="#" onclick="openModal(false); return false;" class="tj-btn tj-btn-primary" style="padding: 14px 32px; font-size: 15px;">Start Writing Free →</a>
+      <a href="#how" class="tj-btn tj-btn-outline" style="padding: 14px 32px; font-size: 15px;">See How It Works</a>
+    </div>
+    <div class="hero-trust">
+      <div class="hero-trust-avatars">
+        <img src="https://i.pravatar.cc/100?img=1" alt="User">
+        <img src="https://i.pravatar.cc/100?img=5" alt="User">
+        <img src="https://i.pravatar.cc/100?img=8" alt="User">
+        <img src="https://i.pravatar.cc/100?img=12" alt="User">
+      </div>
+      <p class="hero-trust-text">Trusted by <strong>2,400+ writers</strong> worldwide</p>
     </div>
   </div>
 
-  <div class="hero">
-    <h1>Write Content That <span>Ranks</span> – On Google & AI Search</h1>
-    <p>Generate SEO-optimized articles with advanced AIEO optimization, EEAT enhancement, humanization, FAQ sections, and real-time SEO scores. Built for content marketers, agencies, and bloggers.</p>
-    <div class="features-highlight">
-      <span class="pill">🚀 AIEO-Optimized</span>
-      <span class="pill">🧠 EEAT Enhanced</span>
-      <span class="pill">💬 Humanization Mode</span>
-      <span class="pill">📊 Real-time SEO Score</span>
-      <span class="pill">❓ Auto FAQ Generator</span>
-      <span class="pill">📑 Table of Contents</span>
-      <span class="pill">🎯 Key Takeaways</span>
-      <span class="pill">🔍 Site Audit</span>
-    </div>
-    <div class="cta-buttons">
-      <button class="btn-primary" id="heroSignupBtn" style="padding:14px 32px; font-size:16px;">Start Free →</button>
-      <button class="btn-outline" id="heroSigninBtn">Sign In</button>
+  <div class="hero-visual animate-in delay-1">
+    <div class="hero-mockup">
+      <div class="mockup-header">
+        <div class="mockup-dots"><span></span><span></span><span></span></div>
+        <span class="mockup-title">Article Preview</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-score">
+          <div class="score-ring"><span>92</span></div>
+          <div class="score-info">
+            <h4>SEO Score: Excellent</h4>
+            <p>AIEO optimized · EEAT enhanced</p>
+          </div>
+        </div>
+        <div class="mockup-article">
+          <h3>How to Rank #1 on Google in 2026</h3>
+          <p>Search engines have evolved. Here's what actually moves the needle for content marketers this year...</p>
+          <div class="mockup-tags">
+            <span class="mockup-tag teal">AIEO Ready</span>
+            <span class="mockup-tag coral">EEAT Strong</span>
+            <span class="mockup-tag amber">FAQ Included</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</section>
 
-  <div class="features">
-    <h2 class="section-title">Why <span>SEO Writer Pro</span>?</h2>
+<!-- ====== FEATURES ====== -->
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="section-header">
+      <h2>Everything You Need to Rank</h2>
+      <p>Not just another AI writer. A complete content optimization suite that understands what search engines — and readers — actually want.</p>
+    </div>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>AI-Powered Content</h3>
-        <p>Generate high-quality, unique articles in seconds with advanced AI models optimized for SEO and AIEO.</p>
-        <span class="tag">GPT-OSS 120B</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Real-time SEO Score</h3>
-        <p>Get instant SEO scores with actionable suggestions to improve readability, keyword density, and structure.</p>
-        <span class="tag">Readability Analysis</span>
+        <div class="feature-icon">🚀</div>
+        <h3>AIEO Optimization</h3>
+        <p>Structure your content for AI search engines and featured snippets. Get found in ChatGPT, Perplexity, and Google SGE.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🧠</div>
         <h3>EEAT Enhancement</h3>
-        <p>Boost Experience, Expertise, Authoritativeness, and Trustworthiness signals – essential for Google's quality guidelines.</p>
-        <span class="tag">Trust Signals</span>
+        <p>Boost Experience, Expertise, Authoritativeness, and Trust signals with smart citations, author bios, and factual depth.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">💬</div>
         <h3>Humanization Mode</h3>
-        <p>Make your content sound natural, conversational, and engaging – not robotic. Connect with your readers.</p>
-        <span class="tag">Natural Language</span>
+        <p>Transform robotic AI drafts into natural, engaging prose that reads like it was written by a seasoned editor.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Real-Time SEO Score</h3>
+        <p>Watch your content's SEO health improve as you write. Keyword density, readability, and structure — all live.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">❓</div>
         <h3>Auto FAQ Generator</h3>
-        <p>Automatically generate 3-5 FAQs with answers based on your topic – boost engagement and SEO.</p>
-        <span class="tag">FAQ Schema Ready</span>
+        <p>Instantly generate relevant FAQ sections that boost your chances of winning "People Also Ask" placements.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📑</div>
-        <h3>Table of Contents</h3>
-        <p>Generate a structured table of contents for your articles – improves readability and user experience.</p>
-        <span class="tag">UX Boost</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <h3>Key Takeaways</h3>
-        <p>Summarize the most important points of your article with a key takeaways section – perfect for skimmers.</p>
-        <span class="tag">Quick Summary</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🌐</div>
-        <h3>Site Audit</h3>
-        <p>Analyze any live URL for on‑page SEO, meta tags, headings, alt text, readability, and get actionable advice.</p>
-        <span class="tag">Technical SEO</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🌍</div>
-        <h3>Multi-Country & Language</h3>
-        <p>Target specific countries and languages – create content that resonates with your global audience.</p>
-        <span class="tag">Localize</span>
+        <h3>Smart Table of Contents</h3>
+        <p>Auto-generate jump links and structured headings that improve UX and help search engines crawl your content.</p>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="pricing">
-    <h2 class="section-title">Simple, <span>Transparent</span> Pricing</h2>
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <h3>Free</h3>
-        <div class="price">₦0<span>/month</span></div>
-        <ul>
-          <li>8 article generations/month</li>
-          <li>Basic SEO score + readability</li>
-          <li>Site audit (5/month)</li>
-          <li>30‑day history</li>
-          <li>Email support</li>
-        </ul>
-        <button class="btn-pricing freeSignupBtn">Get Started</button>
+<!-- ====== HOW IT WORKS ====== -->
+<section class="how-it-works" id="how">
+  <div class="how-inner">
+    <div class="section-header">
+      <h2>From Idea to Published in Minutes</h2>
+      <p>Four simple steps. No complexity. No steep learning curve. Just great content, faster.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Enter Your Topic</h3>
+        <p>Type a keyword or headline. Our AI researches the top-ranking content instantly.</p>
       </div>
-      <div class="pricing-card popular">
-        <div class="popular-badge">Most Popular</div>
-        <h3>Pro</h3>
-        <div class="price">₦1,500<span>/month</span></div>
-        <ul>
-          <li>25 article generations/month</li>
-          <li>Advanced SEO analysis + EEAT</li>
-          <li>FAQ, TOC, Key Takeaways</li>
-          <li>Humanization Mode</li>
-          <li>Unlimited site audit</li>
-          <li>Priority support</li>
-        </ul>
-        <button class="btn-pricing proSignupBtn">Upgrade Now</button>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Choose Your Style</h3>
+        <p>Select tone, length, and optimization level. Blog post, landing page, or product review.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Edit & Optimize</h3>
+        <p>Watch your real-time SEO score. Add FAQs, citations, and EEAT signals as you go.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <h3>Export & Publish</h3>
+        <p>Copy clean HTML, Markdown, or plain text. Ready for WordPress, Medium, or your CMS.</p>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="footer">
-    <p>© 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult</p>
+<!-- ====== CTA ====== -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2>Ready to Write Content That Ranks?</h2>
+    <p>Join thousands of content marketers who've stopped guessing and started ranking. Your first 3 articles are free.</p>
+    <a href="#" onclick="openModal(false); return false;" class="tj-btn tj-btn-coral" style="padding: 16px 40px; font-size: 16px;">Start Writing Free →</a>
   </div>
+</section>
 
-  <!-- ====== AUTH MODAL ====== -->
-  <div id="authModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeModalBtn">&times;</span>
-      <div class="tab">
-        <button id="modalSigninTab" class="active">Sign In</button>
-        <button id="modalSignupTab">Sign Up</button>
-      </div>
-      <!-- SIGN IN -->
-      <form id="modalSigninForm">
-        <div class="form-group">
-          <input type="email" id="modalSigninEmail" placeholder="Email" required>
+<!-- ====== FOOTER ====== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-icon">✍️</div>
+          <span class="footer-brand-text">SEOWriter Pro</span>
         </div>
-        <div class="form-group">
-          <div class="password-wrapper">
-            <input type="password" id="modalSigninPassword" placeholder="Password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('modalSigninPassword', this)">👁️</button>
+        <p style="font-size:13px; color:rgba(250,248,245,0.4); margin-top:10px; max-width:260px;">A product of TeaJay Konsult. Built for writers, by writers.</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#" onclick="openModal(false); return false;">Pricing</a>
+          <a href="#">Changelog</a>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <a href="https://teajaykonsult.com">TeaJay Konsult</a>
+          <a href="#">Blog</a>
+          <a href="#">Contact</a>
+        </div>
+        <div>
+          <h4>Share</h4>
+          <div class="footer-share">
+            <a href="https://wa.me/?text=Check%20out%20SEOWriter%20Pro%20by%20TeaJay%20Konsult%3A%20https%3A%2F%2Fthe-seo-writer.vercel.app" class="share-btn" target="_blank" title="Share on WhatsApp">💬</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://the-seo-writer.vercel.app" class="share-btn" target="_blank" title="Share on Facebook">📘</a>
+            <a href="https://twitter.com/intent/tweet?text=SEOWriter%20Pro%20by%20%40TeaJayKonsult%20%E2%80%94%20Write%20content%20that%20ranks%20on%20Google%20%26%20AI%20Search&url=https://the-seo-writer.vercel.app" class="share-btn" target="_blank" title="Share on X">🐦</a>
           </div>
         </div>
-        <div class="form-group" style="text-align:right; margin-top:-10px;">
-          <a href="#" style="color: #00d4ff; font-size:12px; text-decoration:none;" onclick="event.preventDefault(); sendPasswordReset();">Forgot password?</a>
-        </div>
-        <button type="submit">Sign In</button>
-        <div class="message" id="modalSigninMessage"></div>
-      </form>
-      <!-- SIGN UP -->
-      <form id="modalSignupForm" class="hidden">
-        <div class="form-group">
-          <input type="email" id="modalSignupEmail" placeholder="Email" required>
-        </div>
-        <div class="form-group">
-          <div class="password-wrapper">
-            <input type="password" id="modalSignupPassword" placeholder="Password (min. 6 characters)" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('modalSignupPassword', this)">👁️</button>
-          </div>
-        </div>
-        <button type="submit">Create Account</button>
-        <div class="message" id="modalSignupMessage"></div>
-      </form>
-      <!-- GOOGLE SIGN-IN -->
-      <div class="social-divider"><span>or continue with</span></div>
-      <button class="google-btn" onclick="signInWithGoogle()">
-        <svg style="width:20px;height:20px;" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
-          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-          <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
-        </svg>
-        Sign in with Google
-      </button>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 TeaJay Konsult Ltd. All rights reserved.</p>
+      <p>Built with care by Pamilerin Adetunji Ajala</p>
     </div>
   </div>
+</footer>
 
-  <script>
-    // ====== FIREBASE CONFIG ======
-    const firebaseConfig = {
-      apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
-      authDomain: "seo-writer-teajay.firebaseapp.com",
-      projectId: "seo-writer-teajay",
-      storageBucket: "seo-writer-teajay.firebasestorage.app",
-      messagingSenderId: "74159728277",
-      appId: "1:74159728277:web:f0ac81682c20ce67fd1d9c",
-      measurementId: "G-L26ZTRD6L8"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+<!-- ====== AUTH MODAL ====== -->
+<div id="authModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeModalBtn">✕</button>
+    <div class="tab">
+      <button id="modalSigninTab" class="active">Sign In</button>
+      <button id="modalSignupTab">Sign Up</button>
+    </div>
 
-    // ====== DOM REFS ======
-    const authModal = document.getElementById('authModal');
-    const signinTab = document.getElementById('modalSigninTab');
-    const signupTab = document.getElementById('modalSignupTab');
-    const signinForm = document.getElementById('modalSigninForm');
-    const signupForm = document.getElementById('modalSignupForm');
-    const signinEmail = document.getElementById('modalSigninEmail');
-    const signinPassword = document.getElementById('modalSigninPassword');
-    const signupEmail = document.getElementById('modalSignupEmail');
-    const signupPassword = document.getElementById('modalSignupPassword');
-    const signinMessage = document.getElementById('modalSigninMessage');
-    const signupMessage = document.getElementById('modalSignupMessage');
+    <!-- SIGN IN -->
+    <form id="modalSigninForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="modalSigninEmail" placeholder="you@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="modalSigninPassword" placeholder="Enter your password" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('modalSigninPassword', this)">👁️</button>
+        </div>
+      </div>
+      <div class="forgot-link">
+        <a href="#" onclick="event.preventDefault(); sendPasswordReset();">Forgot password?</a>
+      </div>
+      <button type="submit" class="tj-btn-submit">Sign In</button>
+      <div class="message" id="modalSigninMessage"></div>
+    </form>
 
-    // ====== PASSWORD TOGGLE ======
-    function togglePassword(inputId, btn) {
-      const input = document.getElementById(inputId);
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        btn.textContent = '👁️';
-      }
+    <!-- SIGN UP -->
+    <form id="modalSignupForm" class="hidden">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="modalSignupEmail" placeholder="you@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="modalSignupPassword" placeholder="Min. 6 characters" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('modalSignupPassword', this)">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="tj-btn-submit">Create Account</button>
+      <div class="message" id="modalSignupMessage"></div>
+    </form>
+
+    <!-- SOCIAL DIVIDER -->
+    <div class="social-divider"><span>or continue with</span></div>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg viewBox="0 0 48 48">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+        <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+      </svg>
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- ====== INSTALL ====== -->
+<button id="install-btn" onclick="installApp()">⬇️ Install App</button>
+
+<!-- ====== iOS BANNER ====== -->
+<div class="ios-banner" id="ios-banner">
+  <span>📱 Add SEOWriter Pro to your home screen for the best experience</span>
+  <button onclick="document.getElementById('ios-banner').classList.remove('show')">Got it</button>
+</div>
+
+<script>
+// ====== FIREBASE CONFIG ======
+const firebaseConfig = {
+  apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
+  authDomain: "seo-writer-teajay.firebaseapp.com",
+  projectId: "seo-writer-teajay",
+  storageBucket: "seo-writer-teajay.firebasestorage.app",
+  messagingSenderId: "74159728277",
+  appId: "1:74159728277:web:f0ac81682c20ce67fd1d9c",
+  measurementId: "G-L26ZTRD6L8"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ====== DOM REFS ======
+const modal = document.getElementById('authModal');
+const signinTab = document.getElementById('modalSigninTab');
+const signupTab = document.getElementById('modalSignupTab');
+const signinForm = document.getElementById('modalSigninForm');
+const signupForm = document.getElementById('modalSignupForm');
+const signinEmail = document.getElementById('modalSigninEmail');
+const signinPassword = document.getElementById('modalSigninPassword');
+const signupEmail = document.getElementById('modalSignupEmail');
+const signupPassword = document.getElementById('modalSignupPassword');
+const signinMessage = document.getElementById('modalSigninMessage');
+const signupMessage = document.getElementById('modalSignupMessage');
+
+// ====== PASSWORD TOGGLE ======
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+}
+window.togglePassword = togglePassword;
+
+// ====== FORGOT PASSWORD ======
+async function sendPasswordReset() {
+  const email = signinEmail.value.trim();
+  if (!email) {
+    showToast('Please enter your email address first.');
+    return;
+  }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showToast('✅ Password reset email sent. Check your inbox.');
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  }
+}
+window.sendPasswordReset = sendPasswordReset;
+
+// ====== GOOGLE SIGN-IN ======
+async function signInWithGoogle() {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    if (err.code === 'auth/popup-closed-by-user') {
+      showToast('⚠️ Sign-in cancelled.');
+    } else {
+      showToast('❌ Google Sign-In failed: ' + err.message);
     }
-    window.togglePassword = togglePassword;
+    console.error('Google Sign-In error:', err);
+  }
+}
+window.signInWithGoogle = signInWithGoogle;
 
-    // ====== FORGOT PASSWORD ======
-    async function sendPasswordReset() {
-      const email = signinEmail.value.trim();
-      if (!email) {
-        showToast('Please enter your email address first.');
-        return;
-      }
-      try {
-        await auth.sendPasswordResetEmail(email);
-        showToast('✅ Password reset email sent. Check your inbox.');
-      } catch (err) {
-        showToast('❌ ' + err.message);
-      }
+// ====== TOAST ======
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(255,255,255,0.08);font-family:Inter,sans-serif;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+window.showToast = showToast;
+
+// ====== MODAL ======
+function openModal(showSignIn = true) {
+  modal.style.display = 'flex';
+  if (showSignIn) {
+    signinTab.classList.add('active');
+    signupTab.classList.remove('active');
+    signinForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+  } else {
+    signupTab.classList.add('active');
+    signinTab.classList.remove('active');
+    signupForm.classList.remove('hidden');
+    signinForm.classList.add('hidden');
+  }
+}
+window.openModal = openModal;
+
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+  if (e.target === modal) modal.style.display = 'none';
+});
+
+signinTab.addEventListener('click', () => {
+  signinTab.classList.add('active');
+  signupTab.classList.remove('active');
+  signinForm.classList.remove('hidden');
+  signupForm.classList.add('hidden');
+});
+signupTab.addEventListener('click', () => {
+  signupTab.classList.add('active');
+  signinTab.classList.remove('active');
+  signupForm.classList.remove('hidden');
+  signinForm.classList.add('hidden');
+});
+
+// ====== SIGN IN ======
+signinForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  signinMessage.textContent = '';
+  try {
+    await auth.signInWithEmailAndPassword(signinEmail.value.trim(), signinPassword.value);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    signinMessage.textContent = err.message;
+    signinMessage.classList.add('error');
+  }
+});
+
+// ====== SIGN UP ======
+signupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  signupMessage.textContent = '';
+  const email = signupEmail.value.trim();
+  const password = signupPassword.value;
+  if (password.length < 6) {
+    signupMessage.textContent = 'Password must be at least 6 characters.';
+    signupMessage.classList.add('error');
+    return;
+  }
+  try {
+    const userCred = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection('users').doc(userCred.user.uid).set({
+      email: email,
+      plan: 'free',
+      generationsUsedThisMonth: 0,
+      monthlyResetDate: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    }, { merge: true });
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    signupMessage.textContent = err.message;
+    signupMessage.classList.add('error');
+  }
+});
+
+// ====== AUTH STATE ======
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    window.location.href = '/dashboard.html';
+  }
+});
+
+// ====== PWA INSTALL ======
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').classList.add('show');
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      document.getElementById('install-btn').classList.remove('show');
+      deferredPrompt = null;
+    });
+  }
+}
+window.installApp = installApp;
+
+// ====== iOS BANNER ======
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  setTimeout(() => document.getElementById('ios-banner').classList.add('show'), 2000);
+}
+
+// ====== SCROLL ANIMATION ======
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
     }
-    window.sendPasswordReset = sendPasswordReset;
+  });
+}, { threshold: 0.1 });
 
-    // ====== GOOGLE SIGN-IN ======
-    async function signInWithGoogle() {
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-        window.location.href = '/dashboard.html';
-      } catch (err) {
-        if (err.code === 'auth/popup-closed-by-user') {
-          showToast('⚠️ Sign-in cancelled.');
-        } else {
-          showToast('❌ Google Sign-In failed: ' + err.message);
-        }
-        console.error('Google Sign-In error:', err);
-      }
-    }
-    window.signInWithGoogle = signInWithGoogle;
-
-    // ====== TOAST ======
-    function showToast(msg) {
-      const t = document.createElement('div');
-      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(0,212,255,0.2);';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
-    }
-
-    // ====== AUTH FUNCTIONS ======
-    function openModal(showSignIn = true) {
-      authModal.style.display = 'flex';
-      if (showSignIn) {
-        signinTab.classList.add('active');
-        signupTab.classList.remove('active');
-        signinForm.classList.remove('hidden');
-        signupForm.classList.add('hidden');
-      } else {
-        signupTab.classList.add('active');
-        signinTab.classList.remove('active');
-        signupForm.classList.remove('hidden');
-        signinForm.classList.add('hidden');
-      }
-    }
-
-    document.getElementById('landingSigninBtn').addEventListener('click', () => openModal(true));
-    document.getElementById('landingSignupBtn').addEventListener('click', () => openModal(false));
-    document.getElementById('heroSigninBtn').addEventListener('click', () => openModal(true));
-    document.getElementById('heroSignupBtn').addEventListener('click', () => openModal(false));
-    document.querySelectorAll('.freeSignupBtn').forEach(btn => btn.addEventListener('click', () => openModal(false)));
-    document.querySelectorAll('.proSignupBtn').forEach(btn => btn.addEventListener('click', () => openModal(false)));
-    document.getElementById('closeModalBtn').addEventListener('click', () => authModal.style.display = 'none');
-    window.addEventListener('click', (e) => { if (e.target === authModal) authModal.style.display = 'none'; });
-
-    signinTab.addEventListener('click', () => {
-      signinTab.classList.add('active');
-      signupTab.classList.remove('active');
-      signinForm.classList.remove('hidden');
-      signupForm.classList.add('hidden');
-    });
-    signupTab.addEventListener('click', () => {
-      signupTab.classList.add('active');
-      signinTab.classList.remove('active');
-      signupForm.classList.remove('hidden');
-      signinForm.classList.add('hidden');
-    });
-
-    signinForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      signinMessage.textContent = '';
-      const email = signinEmail.value.trim();
-      const password = signinPassword.value;
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = '/dashboard.html';
-      } catch (err) {
-        signinMessage.textContent = err.message;
-        signinMessage.classList.add('error');
-      }
-    });
-
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      signupMessage.textContent = '';
-      const email = signupEmail.value.trim();
-      const password = signupPassword.value;
-      if (password.length < 6) {
-        signupMessage.textContent = 'Password must be at least 6 characters.';
-        signupMessage.classList.add('error');
-        return;
-      }
-      try {
-        const userCred = await auth.createUserWithEmailAndPassword(email, password);
-        await db.collection('users').doc(userCred.user.uid).set({
-          email: email,
-          plan: 'free',
-          generationsUsedThisMonth: 0,
-          monthlyResetDate: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }, { merge: true });
-        window.location.href = '/dashboard.html';
-      } catch (err) {
-        signupMessage.textContent = err.message;
-        signupMessage.classList.add('error');
-      }
-    });
-
-    // Check if user is already signed in
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        window.location.href = '/dashboard.html';
-      }
-    });
-  </script>
+document.querySelectorAll('.feature-card, .step').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(24px)';
+  el.style.transition = 'all 0.6s ease';
+  observer.observe(el);
+});
+</script>
 </body>
 </html>
