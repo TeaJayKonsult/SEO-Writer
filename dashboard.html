@@ -477,7 +477,7 @@
     }
     .tip-box h4 { font-size: 15px; color: #9C6644; margin-bottom: 4px; }
 
-    /* ====== FOOTER (FIXED LINKS WITH .html) ====== */
+    /* ====== FOOTER ====== */
     .footer {
       background: var(--charcoal);
       border-top: 1px solid rgba(255,255,255,0.06);
@@ -704,8 +704,8 @@
               <div class="form-group">
                 <label>Article Length</label>
                 <select id="length">
-                  <option value="short">Short (500 words)</option>
-                  <option value="medium" selected>Medium (800–1200 words)</option>
+                  <option value="short">Short (under 800 words)</option>
+                  <option value="medium" selected>Medium (800–1500 words)</option>
                   <option value="long">Long (1500+ words)</option>
                 </select>
               </div>
@@ -729,7 +729,7 @@
             </div>
           </div>
 
-          <!-- Facebook fields (hidden by default) -->
+          <!-- Facebook fields (updated length) -->
           <div id="facebookFields" style="display:none;">
             <div class="form-group">
               <label>Topic / Hook *</label>
@@ -757,16 +757,16 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Character Limit</label>
+              <label>Post Length</label>
               <select id="fbLength">
-                <option value="short">Short (under 100 chars)</option>
-                <option value="medium" selected>Medium (100-300 chars)</option>
-                <option value="long">Long (300-500 chars)</option>
+                <option value="short">Short (under 800 words)</option>
+                <option value="medium" selected>Medium (800–1200 words)</option>
+                <option value="long">Long (1200+ words)</option>
               </select>
             </div>
           </div>
 
-          <!-- LinkedIn fields (hidden by default) -->
+          <!-- LinkedIn fields -->
           <div id="linkedinFields" style="display:none;">
             <div class="form-group">
               <label>Topic / Headline *</label>
@@ -794,11 +794,11 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Character Limit</label>
+              <label>Post Length</label>
               <select id="liLength">
-                <option value="short">Short (under 100 chars)</option>
-                <option value="medium" selected>Medium (100-300 chars)</option>
-                <option value="long">Long (300-500 chars)</option>
+                <option value="short">Short (under 800 words)</option>
+                <option value="medium" selected>Medium (800–1200 words)</option>
+                <option value="long">Long (1500+ words)</option>
               </select>
             </div>
           </div>
@@ -948,7 +948,7 @@
   </main>
 </div>
 
-<!-- ====== FOOTER (FIXED LINKS WITH .html) ====== -->
+<!-- ====== FOOTER ====== -->
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
@@ -1201,7 +1201,6 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
-    // Display result (same as before)
     document.getElementById('metaTitle').textContent = data.metaTitle || 'N/A';
     document.getElementById('metaDesc').textContent = data.metaDescription || 'N/A';
     document.getElementById('seoScore').textContent = data.seoScore || 'N/A';
@@ -1211,7 +1210,6 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     displayAdvancedSections(data);
     resultCard.style.display = 'block';
     loadHistory();
-    // Update usage
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
     if (userDoc.exists) {
       const d = userDoc.data();
