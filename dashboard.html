@@ -2,59 +2,191 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEO Writer | Dashboard</title>
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1B1B1B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>SEOWriter Pro | Dashboard</title>
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU0VPV3JpdGVyIFBybyIsInNob3J0X25hbWUiOiJTRU9Xcml0ZXIiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0ZBRjhGNSIsInRoZW1lX2NvbG9yIjoiIzFCMUIxQiIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi5pY29uc2NvdXQuY29tL2w4L3BuZy82NC82NC82NDcwODQtcGVuLWFuZC1wYXBlci0yLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <style>
+    /* ====== PREMIUM UI VARIABLES ====== */
+    :root {
+      --cream: #FAF8F5;
+      --cream-dark: #F2EEE8;
+      --charcoal: #1B1B1B;
+      --charcoal-light: #2D2D2D;
+      --warm-gray: #6B6560;
+      --light-gray: #E8E4DE;
+      --teal: #2D6A4F;
+      --teal-light: #40916C;
+      --teal-pale: #D8F3DC;
+      --coral: #C06C4F;
+      --coral-light: #E07A5F;
+      --coral-pale: #FCE8E0;
+      --amber: #D4A373;
+      --amber-pale: #FAEDCD;
+      --white: #FFFFFF;
+      --shadow-soft: 0 4px 24px rgba(27,27,27,0.06);
+      --shadow-medium: 0 8px 40px rgba(27,27,27,0.10);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: #f8fafc;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
+    }
+    .tj-header {
+      background: rgba(250,248,245,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--light-gray);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .tj-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tj-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .tj-brand-icon {
+      width: 36px; height: 36px;
+      background: var(--teal);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+    .tj-brand-text {
       display: flex;
       flex-direction: column;
     }
-    .app-header {
-      background: linear-gradient(135deg, #0a1f12, #0f2d1a);
-      padding: 16px 24px;
-      text-align: center;
-      color: white;
-      position: relative;
+    .tj-brand-name {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--charcoal);
+      line-height: 1.1;
     }
-    .app-header .brand { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
-    .app-header h1 { font-size: 24px; margin-top: 4px; }
-    .menu-toggle {
-      position: absolute;
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
+    .tj-brand-sub {
+      font-size: 10px;
+      color: var(--warm-gray);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .tj-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tj-nav a {
+      text-decoration: none;
+      color: var(--warm-gray);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
       cursor: pointer;
-      display: none;
     }
-    .app-footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 12px;
-      color: #475569;
-      border-top: 1px solid #e2e8f0;
-      background: white;
+    .tj-nav a:hover { color: var(--charcoal); background: var(--cream-dark); }
+    .tj-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
     }
-    .app-wrapper { display: flex; flex: 1; }
+    .tj-btn-primary {
+      background: var(--charcoal);
+      color: var(--cream);
+      box-shadow: var(--shadow-soft);
+    }
+    .tj-btn-primary:hover {
+      background: var(--charcoal-light);
+      transform: translateY(-1px);
+    }
+    .tj-btn-outline {
+      background: transparent;
+      color: var(--charcoal);
+      border: 1.5px solid var(--light-gray);
+    }
+    .tj-btn-outline:hover {
+      border-color: var(--charcoal);
+      background: var(--white);
+    }
+    .tj-btn-coral {
+      background: var(--coral);
+      color: white;
+      box-shadow: 0 4px 20px rgba(192,108,79,0.25);
+    }
+    .tj-btn-coral:hover {
+      background: var(--coral-light);
+      transform: translateY(-1px);
+    }
+
+    /* ====== DASHBOARD LAYOUT ====== */
+    .dashboard-wrapper {
+      display: flex;
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      gap: 24px;
+      width: 100%;
+    }
     .sidebar {
       width: 280px;
-      background: white;
-      border-right: 1px solid #e2e8f0;
+      flex-shrink: 0;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--light-gray);
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease;
+      max-height: calc(100vh - 140px);
+      position: sticky;
+      top: 100px;
+      overflow: hidden;
     }
     .sidebar-header {
-      padding: 20px 16px 12px 16px;
-      border-bottom: 1px solid #e2e8f0;
+      padding: 20px 18px 12px;
+      border-bottom: 1px solid var(--light-gray);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -65,46 +197,85 @@
       border: none;
       cursor: pointer;
       font-size: 16px;
-      color: #0d9488;
+      color: var(--teal);
       transition: transform 0.2s;
     }
     .sidebar-header .refresh-btn:hover { transform: rotate(180deg); }
-    .history-list {
+    .sidebar .history-list {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
-      position: relative;
     }
-    .history-list .loading-spinner {
+    .sidebar .history-list .loading-spinner {
       text-align: center;
       padding: 20px;
-      color: #94a3b8;
+      color: var(--warm-gray);
       font-size: 14px;
     }
-    .history-item {
-      background: #f8fafc;
-      border-radius: 12px;
+    .sidebar .history-item {
+      background: var(--cream);
+      border-radius: var(--radius-md);
       padding: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       cursor: pointer;
       transition: all 0.2s;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--light-gray);
     }
-    .history-item:hover { background: #f1f5f9; border-color: #0d9488; }
-    .history-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .history-date { font-size: 11px; color: #64748b; margin-top: 4px; }
-    .history-empty {
+    .sidebar .history-item:hover {
+      background: var(--cream-dark);
+      border-color: var(--teal);
+    }
+    .sidebar .history-item .htitle {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar .history-item .hdate {
+      font-size: 11px;
+      color: var(--warm-gray);
+      margin-top: 4px;
+    }
+    .sidebar .history-empty {
       text-align: center;
       padding: 40px 20px;
-      color: #94a3b8;
+      color: var(--warm-gray);
       font-size: 14px;
     }
-    .main-content { flex: 1; padding: 24px; overflow-y: auto; }
+    .sidebar .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--light-gray);
+    }
+    .sidebar .sidebar-footer button {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--warm-gray);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sidebar .sidebar-footer button:hover {
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ====== USER INFO ====== */
     .user-info {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--light-gray);
       margin-bottom: 24px;
       display: flex;
       justify-content: space-between;
@@ -112,181 +283,294 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-    .user-details h3 { font-size: 18px; margin-bottom: 4px; }
-    .user-details p { color: #475569; font-size: 14px; }
-    .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; }
-    .upgrade-btn { background: #0d9488; color: white; border: none; padding: 10px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; margin-left: 12px; }
-    .dashboard-tabs {
+    .user-info .greeting h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--charcoal);
+    }
+    .user-info .greeting p {
+      font-size: 13px;
+      color: var(--warm-gray);
+    }
+    .user-info .greeting p span { color: var(--teal); font-weight: 600; }
+    .user-info .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ====== TABS ====== */
+    .tabs {
       display: flex;
-      gap: 8px;
+      gap: 4px;
       margin-bottom: 24px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 2px solid var(--light-gray);
       flex-wrap: wrap;
     }
     .tab-btn {
       background: none;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 20px;
       font-weight: 600;
-      color: #64748b;
+      font-size: 14px;
+      color: var(--warm-gray);
       cursor: pointer;
       border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
       transition: all 0.2s;
     }
     .tab-btn.active {
-      color: #0d9488;
-      border-bottom-color: #0d9488;
+      color: var(--teal);
+      border-bottom-color: var(--teal);
     }
-    .form-card, .result-card, .analyzer-card {
-      background: white;
-      border-radius: 24px;
+    .tab-btn:hover { color: var(--charcoal); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ====== CARDS ====== */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
       padding: 28px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--light-gray);
       margin-bottom: 24px;
     }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b; font-size: 14px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 16px;
-      font-size: 15px;
-      font-family: inherit;
-    }
-    textarea { resize: vertical; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    button[type="submit"], .analyze-btn {
-      background: linear-gradient(135deg, #0d9488, #0f766e);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 40px;
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
       font-weight: 700;
-      cursor: pointer;
+      margin-bottom: 6px;
+      color: var(--charcoal);
     }
-    .loading { display: none; text-align: center; margin: 20px 0; }
-    .meta-box { background: #f1f5f9; padding: 16px; border-radius: 16px; margin-bottom: 20px; }
-    .meta-title { font-size: 18px; font-weight: 700; color: #0f172a; }
-    .meta-desc { color: #475569; margin-top: 4px; }
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-    .tag { background: #e2e8f0; padding: 4px 12px; border-radius: 50px; font-size: 12px; }
-    .score { font-size: 24px; font-weight: 800; color: #0d9488; }
-    .suggestions-list { margin-top: 12px; padding-left: 20px; color: #475569; }
-    .copy-btn {
-      background: #0d9488;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 40px;
+    .card-sub {
+      font-size: 14px;
+      color: var(--warm-gray);
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
       font-weight: 600;
-      cursor: pointer;
-      margin-top: 16px;
-      display: inline-flex;
+      color: var(--charcoal);
+      margin-bottom: 4px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--light-gray);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--teal);
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-hint { font-size: 12px; color: var(--warm-gray); margin-top: 4px; }
+
+    .toggle-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+    .toggle-group label {
+      display: flex;
       align-items: center;
       gap: 6px;
-    }
-    .fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #0d9488, #0f766e);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 12px 18px;
       font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 4px 20px rgba(13,148,136,0.4);
+      font-weight: 500;
       cursor: pointer;
-      z-index: 999;
-      display: none;
-      align-items: center;
-      gap: 8px;
     }
+    .toggle-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--teal); }
+
     details summary {
       cursor: pointer;
-      font-weight: 700;
-      color: #0d9488;
-      padding: 12px 0;
-      font-size: 16px;
+      font-weight: 600;
+      color: var(--teal);
+      padding: 8px 0;
+      font-size: 15px;
     }
-    details summary:hover { color: #0f766e; }
-    .toggle-group { display: flex; gap: 20px; flex-wrap: wrap; }
-    .toggle-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
-    .toggle-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0d9488; }
-    .section-divider { border: none; border-top: 2px dashed #e2e8f0; margin: 24px 0; }
-    .form-hint { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-    .tip-box {
-      background: #fef9e3;
-      border-left: 5px solid #f59e0b;
+    details summary:hover { color: var(--teal-light); }
+
+    .submit-btn {
+      background: var(--charcoal);
+      color: var(--cream);
+      border: none;
+      padding: 12px 28px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .submit-btn:hover {
+      background: var(--charcoal-light);
+      transform: translateY(-1px);
+    }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ====== RESULT CARD ====== */
+    .result-card { margin-top: 24px; }
+    .result-meta {
+      background: var(--cream);
+      border-radius: var(--radius-md);
       padding: 16px;
-      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+    .result-meta .meta-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--charcoal);
+    }
+    .result-meta .meta-desc { color: var(--warm-gray); font-size: 14px; margin-top: 4px; }
+    .result-meta .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .result-meta .tag {
+      background: var(--light-gray);
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .result-meta .score { font-size: 22px; font-weight: 700; color: var(--teal); }
+    .result-meta .readability { font-size: 13px; color: var(--warm-gray); margin-top: 4px; }
+
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .result-actions .copy-btn {
+      background: var(--teal);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .result-actions .copy-btn:hover { background: var(--teal-light); }
+    .result-actions .copy-btn.secondary { background: var(--warm-gray); }
+    .result-actions .copy-btn.secondary:hover { background: var(--charcoal); }
+
+    /* ====== LOADING ====== */
+    .loading { display: none; text-align: center; padding: 30px 0; }
+    .loading .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--light-gray);
+      border-top: 3px solid var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ====== TIP BOX ====== */
+    .tip-box {
+      background: var(--amber-pale);
+      border-left: 4px solid var(--amber);
+      padding: 16px;
+      border-radius: var(--radius-sm);
       margin-top: 20px;
     }
-    .tip-box h4 { font-size: 16px; margin-bottom: 8px; color: #b45309; }
-    .tip-box p { font-size: 14px; color: #92400e; }
+    .tip-box h4 { font-size: 15px; color: #9C6644; margin-bottom: 4px; }
+
+    /* ====== MOBILE ====== */
     @media (max-width: 768px) {
+      .dashboard-wrapper { flex-direction: column; padding: 16px; }
       .sidebar {
-        position: fixed;
-        left: -280px;
-        z-index: 100;
-        height: 100%;
-        transition: left 0.3s;
+        width: 100%;
+        max-height: 300px;
+        position: relative;
+        top: 0;
       }
-      .sidebar.open { left: 0; }
-      .menu-toggle { display: block; }
-      .main-content { padding: 16px; }
       .form-row { grid-template-columns: 1fr; }
+      .user-info { flex-direction: column; align-items: stretch; text-align: center; }
+      .user-info .actions { justify-content: center; }
+      .tj-nav a { display: none; }
+      .tj-nav a.tj-btn { display: inline-flex; }
     }
   </style>
-  <script src="https://js.paystack.co/v2/inline.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <button class="fab" id="installBtn">📲 Install App</button>
-  <div class="app-header">
-    <button class="menu-toggle" id="menuToggle">☰</button>
-    <div class="brand">TeaJay Konsult Ltd.</div>
-    <h1>📄 SEO Writer</h1>
-  </div>
-  <div class="app-wrapper">
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        📜 History
-        <button class="refresh-btn" id="refreshHistoryBtn" title="Refresh History">🔄</button>
-      </div>
-      <div class="history-list" id="historyList">
-        <div class="loading-spinner">Loading history...</div>
+
+<!-- ====== HEADER ====== -->
+<header class="tj-header">
+  <div class="tj-header-inner">
+    <div class="tj-brand" onclick="location.reload()">
+      <div class="tj-brand-icon">✍️</div>
+      <div class="tj-brand-text">
+        <span class="tj-brand-name">SEOWriter Pro</span>
+        <span class="tj-brand-sub">by TeaJay Konsult</span>
       </div>
     </div>
-    <div class="main-content">
-      <div class="user-info" id="userInfo">
-        <div class="user-details">
-          <h3>Welcome, <span id="userEmail">Loading...</span></h3>
-          <p>Plan: <span id="userPlan">Free</span> · Generations used: <span id="usageCount">0</span>/<span id="usageLimit">8</span> this month</p>
-        </div>
-        <div>
-          <button class="upgrade-btn" id="upgradeBtn">Upgrade to Pro (₦1500/mo)</button>
-          <button class="logout-btn" id="logoutBtn">Sign Out</button>
-        </div>
+    <nav class="tj-nav">
+      <a href="/">Home</a>
+      <a href="#" onclick="document.getElementById('signOutBtn').click(); return false;" style="padding:8px 18px; font-size:13px; border:1.5px solid var(--light-gray); border-radius:var(--radius-sm);">Sign Out</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ====== DASHBOARD ====== -->
+<div class="dashboard-wrapper" id="dashboardWrapper">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      📜 History
+      <button class="refresh-btn" id="refreshHistoryBtn" title="Refresh History">🔄</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="loading-spinner">Loading history...</div>
+    </div>
+    <div class="sidebar-footer">
+      <button id="signOutBtn">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- USER INFO -->
+    <div class="user-info">
+      <div class="greeting">
+        <h3>Welcome back, <span id="userName">Pastor</span> 👋</h3>
+        <p>Plan: <span id="userPlan">Free</span> · <span id="usageText">0 / 8 generations this month</span></p>
       </div>
-
-      <div class="dashboard-tabs">
-        <button class="tab-btn active" data-tab="generate">✍️ Generate Article</button>
-        <button class="tab-btn" data-tab="analyze">🔍 SEO Analyzer</button>
-        <button class="tab-btn" data-tab="siteaudit">🌐 Site Audit</button>
+      <div class="actions">
+        <button class="tj-btn tj-btn-coral" id="upgradeBtn">🚀 Upgrade to Pro</button>
+        <button class="tj-btn tj-btn-outline" onclick="location.reload()">🔄 Refresh</button>
       </div>
+    </div>
 
-      <!-- GENERATE TAB -->
-      <div id="generateTab" class="tab-content">
-        <div class="form-card">
-          <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="generate">✍️ Generate</button>
+      <button class="tab-btn" data-tab="analyze">🔍 Analyze</button>
+      <button class="tab-btn" data-tab="siteaudit">🌐 Site Audit</button>
+    </div>
 
-          <div style="margin-bottom:24px;">
-            <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">📋 Basic Information</h3>
+    <!-- ====== GENERATE TAB ====== -->
+    <div id="tabGenerate" class="tab-content active">
+      <div class="card">
+        <div class="card-title">✍️ Create Content</div>
+        <div class="card-sub">Choose your content type and fill in the details. Our AI will generate optimized content for your chosen platform.</div>
+
+        <!-- Content Type Dropdown -->
+        <div class="form-group">
+          <label>Content Type</label>
+          <select id="contentType">
+            <option value="blog">📝 Blog Article</option>
+            <option value="facebook">📘 Facebook Post</option>
+            <option value="linkedin">💼 LinkedIn Post</option>
+          </select>
+          <div class="form-hint">Select the platform you're writing for.</div>
+        </div>
+
+        <!-- Dynamic Fields Container -->
+        <div id="dynamicFields">
+          <!-- Blog fields (default) -->
+          <div id="blogFields">
             <div class="form-group">
               <label>Primary Keyword *</label>
               <input type="text" id="primaryKeyword" placeholder="e.g., AI caption generator" required>
@@ -296,13 +580,13 @@
               <input type="text" id="secondaryKeywords" placeholder="e.g., social media captions, content creation">
             </div>
             <div class="form-group">
-              <label>Blog Title (optional – AI will generate if left blank)</label>
+              <label>Blog Title (optional)</label>
               <input type="text" id="blogTitle" placeholder="e.g., How to Write Captivating AI Captions">
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Target Audience</label>
-                <input type="text" id="targetAudience" placeholder="e.g., small business owners, freelancers">
+                <input type="text" id="targetAudience" placeholder="e.g., small business owners">
               </div>
               <div class="form-group">
                 <label>Country</label>
@@ -313,7 +597,6 @@
                   <option value="Canada">Canada</option>
                   <option value="Kenya">Kenya</option>
                   <option value="South Africa">South Africa</option>
-                  <option value="Ghana">Ghana</option>
                 </select>
               </div>
             </div>
@@ -349,12 +632,6 @@
                 <input type="text" id="authorCredentials" placeholder="e.g., 10 years SEO experience">
               </div>
             </div>
-          </div>
-
-          <hr class="section-divider">
-
-          <div style="margin-bottom:24px;">
-            <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">⚙️ Content Settings</h3>
             <div class="form-row">
               <div class="form-group">
                 <label>Article Length</label>
@@ -384,686 +661,651 @@
             </div>
           </div>
 
-          <hr class="section-divider">
-
-          <details>
-            <summary>🔧 Advanced SEO Options</summary>
-            <div style="margin-top:16px;">
-              <div class="form-row">
-                <div class="form-group">
-                  <label>SEO Title (optional – override AI-generated)</label>
-                  <input type="text" id="seoTitle" placeholder="Leave blank for AI to generate">
-                  <div class="form-hint">Recommended: under 60 characters</div>
-                </div>
-                <div class="form-group">
-                  <label>Meta Description (optional – override AI-generated)</label>
-                  <input type="text" id="metaDescription" placeholder="Leave blank for AI to generate">
-                  <div class="form-hint">Recommended: under 160 characters</div>
-                </div>
-              </div>
-              <div class="toggle-group">
-                <label><input type="checkbox" id="includeFaq" checked> Include FAQ Section</label>
-                <label><input type="checkbox" id="includeToc" checked> Include Table of Contents</label>
-                <label><input type="checkbox" id="includeTakeaways" checked> Include Key Takeaways</label>
-              </div>
-              <div class="toggle-group" style="margin-top:12px;">
-                <label><input type="checkbox" id="eeatMode"> 🧠 EEAT Enhancement Mode</label>
-                <label><input type="checkbox" id="humanizationMode"> 💬 Humanization Mode</label>
-              </div>
-              <div class="form-hint" style="margin-top:8px;">EEAT = Experience, Expertise, Authoritativeness, Trustworthiness</div>
+          <!-- Facebook fields (hidden by default) -->
+          <div id="facebookFields" style="display:none;">
+            <div class="form-group">
+              <label>Topic / Hook *</label>
+              <input type="text" id="fbTopic" placeholder="e.g., 5 Ways to Grow Your Small Business" required>
             </div>
-          </details>
+            <div class="form-group">
+              <label>Target Audience</label>
+              <input type="text" id="fbAudience" placeholder="e.g., small business owners, freelancers">
+            </div>
+            <div class="form-group">
+              <label>Call to Action (optional)</label>
+              <input type="text" id="fbCta" placeholder="e.g., Comment 'YES' to get started">
+            </div>
+            <div class="form-group">
+              <label>Hashtags (comma separated)</label>
+              <input type="text" id="fbHashtags" placeholder="e.g., #SmallBiz, #Entrepreneur">
+            </div>
+            <div class="form-group">
+              <label>Writing Style</label>
+              <select id="fbTone">
+                <option value="engaging">Engaging</option>
+                <option value="conversational">Conversational</option>
+                <option value="professional">Professional</option>
+                <option value="inspirational">Inspirational</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Character Limit</label>
+              <select id="fbLength">
+                <option value="short">Short (under 100 chars)</option>
+                <option value="medium" selected>Medium (100-300 chars)</option>
+                <option value="long">Long (300-500 chars)</option>
+              </select>
+            </div>
+          </div>
 
-          <hr class="section-divider">
-
-          <button class="analyze-btn" id="generateBtn">🚀 Generate Article</button>
-          <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
+          <!-- LinkedIn fields (hidden by default) -->
+          <div id="linkedinFields" style="display:none;">
+            <div class="form-group">
+              <label>Topic / Headline *</label>
+              <input type="text" id="liTopic" placeholder="e.g., The Future of Remote Work" required>
+            </div>
+            <div class="form-group">
+              <label>Target Audience</label>
+              <input type="text" id="liAudience" placeholder="e.g., HR professionals, team leads">
+            </div>
+            <div class="form-group">
+              <label>Call to Action (optional)</label>
+              <input type="text" id="liCta" placeholder="e.g., Share your thoughts in the comments">
+            </div>
+            <div class="form-group">
+              <label>Industry / Sector</label>
+              <input type="text" id="liIndustry" placeholder="e.g., Technology, Marketing, Finance">
+            </div>
+            <div class="form-group">
+              <label>Writing Style</label>
+              <select id="liTone">
+                <option value="professional">Professional</option>
+                <option value="thought-leadership">Thought Leadership</option>
+                <option value="insightful">Insightful</option>
+                <option value="storytelling">Storytelling</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Character Limit</label>
+              <select id="liLength">
+                <option value="short">Short (under 100 chars)</option>
+                <option value="medium" selected>Medium (100-300 chars)</option>
+                <option value="long">Long (300-500 chars)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div class="result-card" id="resultCard" style="display:none;">
-          <h2>📝 Generated Content</h2>
-          <div class="meta-box">
+        <!-- Advanced SEO Options (for blog only – shown/hidden dynamically) -->
+        <details id="advancedOptions" style="margin-top:12px;">
+          <summary>🔧 Advanced SEO Options</summary>
+          <div style="margin-top:12px;">
+            <div class="form-row">
+              <div class="form-group">
+                <label>SEO Title (optional – override AI)</label>
+                <input type="text" id="seoTitle" placeholder="Leave blank for AI to generate">
+              </div>
+              <div class="form-group">
+                <label>Meta Description (optional – override AI)</label>
+                <input type="text" id="metaDescription" placeholder="Leave blank for AI to generate">
+              </div>
+            </div>
+            <div class="toggle-group">
+              <label><input type="checkbox" id="includeFaq" checked> Include FAQ</label>
+              <label><input type="checkbox" id="includeToc" checked> Include TOC</label>
+              <label><input type="checkbox" id="includeTakeaways" checked> Include Takeaways</label>
+            </div>
+            <div class="toggle-group">
+              <label><input type="checkbox" id="eeatMode"> 🧠 EEAT Mode</label>
+              <label><input type="checkbox" id="humanizationMode"> 💬 Humanization</label>
+            </div>
+          </div>
+        </details>
+
+        <button class="submit-btn" id="generateBtn" style="margin-top:16px;">🚀 Generate Content</button>
+        <div class="loading" id="loading"><div class="spinner"></div><p>Generating... please wait (15-30 sec)</p></div>
+      </div>
+
+      <!-- Result Card -->
+      <div class="result-card" id="resultCard" style="display:none;">
+        <div class="card">
+          <div class="card-title">📝 Generated Content</div>
+          <div class="result-meta">
             <div class="meta-title" id="metaTitle"></div>
             <div class="meta-desc" id="metaDesc"></div>
             <div class="tags" id="tagsContainer"></div>
-            <div>SEO Score: <span class="score" id="seoScore"></span>/100</div>
-            <div id="readabilityScore" style="margin-top:4px; font-size:13px; color:#475569;"></div>
+            <div class="score">SEO Score: <span id="seoScore"></span>/100</div>
+            <div class="readability" id="readabilityScore"></div>
           </div>
           <div id="articleContent"></div>
-
-          <div id="faqContainer" style="margin-top:20px; display:none;">
-            <h3>❓ Frequently Asked Questions</h3>
-            <div id="faqList"></div>
+          <div id="faqContainer" style="margin-top:20px; display:none;"><h4>❓ FAQ</h4><div id="faqList"></div></div>
+          <div id="tocContainer" style="margin-top:20px; display:none;"><h4>📑 Table of Contents</h4><ul id="tocList"></ul></div>
+          <div id="takeawaysContainer" style="margin-top:20px; display:none;"><h4>🎯 Key Takeaways</h4><ul id="takeawaysList"></ul></div>
+          <div class="result-actions">
+            <button class="copy-btn" id="copyBtn">📋 Copy Rich HTML</button>
+            <button class="copy-btn secondary" id="copyPlainBtn">📄 Copy Plain Text</button>
+            <button class="copy-btn" id="pdfBtn" style="background:var(--coral);">📄 Save PDF</button>
           </div>
-          <div id="tocContainer" style="margin-top:20px; display:none;">
-            <h3>📑 Table of Contents</h3>
-            <ul id="tocList"></ul>
-          </div>
-          <div id="takeawaysContainer" style="margin-top:20px; display:none;">
-            <h3>🎯 Key Takeaways</h3>
-            <ul id="takeawaysList"></ul>
-          </div>
-
-          <button class="copy-btn" id="copyBtn">📋 Copy Article (Rich HTML)</button>
-          <button class="copy-btn" id="copyPlainBtn" style="background: #475569;">📄 Copy Plain Text</button>
         </div>
       </div>
+    </div>
 
-      <!-- ANALYZE TAB -->
-      <div id="analyzeTab" class="tab-content" style="display:none;">
-        <div class="analyzer-card">
-          <h2>🔍 SEO Content Analyzer</h2>
-          <div class="form-group">
-            <label>Paste your article text</label>
-            <textarea id="analyzeContent" rows="12" placeholder="Paste your article content here..."></textarea>
-          </div>
-          <div class="form-group">
-            <label>Target Keywords (optional, comma separated)</label>
-            <input type="text" id="analyzeKeywords" placeholder="e.g., freelance, business">
-          </div>
-          <button class="analyze-btn" id="analyzeBtn">🔍 Analyze SEO</button>
-          <div class="loading" id="analyzeLoading" style="display:none;">⏳ Analyzing... please wait (10‑20 sec)</div>
+    <!-- ====== ANALYZE TAB ====== -->
+    <div id="tabAnalyze" class="tab-content">
+      <div class="card">
+        <div class="card-title">🔍 SEO Content Analyzer</div>
+        <div class="card-sub">Paste your article text to get a detailed SEO analysis with actionable suggestions.</div>
+        <div class="form-group">
+          <label>Article Text</label>
+          <textarea id="analyzeContent" rows="10" placeholder="Paste your article content here..."></textarea>
         </div>
-        <div class="result-card" id="analyzeResult" style="display:none;">
-          <h2>📊 SEO Analysis Results</h2>
-          <div class="meta-box">
+        <div class="form-group">
+          <label>Target Keywords (optional, comma separated)</label>
+          <input type="text" id="analyzeKeywords" placeholder="e.g., SEO, content marketing">
+        </div>
+        <button class="submit-btn" id="analyzeBtn">🔍 Analyze SEO</button>
+        <div class="loading" id="analyzeLoading"><div class="spinner"></div><p>Analyzing... (10-20 sec)</p></div>
+      </div>
+      <div class="result-card" id="analyzeResult" style="display:none;">
+        <div class="card">
+          <div class="card-title">📊 SEO Analysis Results</div>
+          <div class="result-meta">
             <div>SEO Score: <span class="score" id="analyzeScore"></span>/100</div>
             <div>Word Count: <strong id="wordCount"></strong></div>
             <div>Keyword Density: <strong id="keywordDensity"></strong>%</div>
-            <div>Readability (Flesch): <strong id="readability"></strong> (higher is better)</div>
+            <div>Readability: <strong id="readability"></strong></div>
             <div>Headings: H1: <span id="h1Count">0</span>, H2: <span id="h2Count">0</span>, H3: <span id="h3Count">0</span></div>
           </div>
-          <h3>💡 Suggestions</h3>
-          <ul class="suggestions-list" id="suggestionsList"></ul>
-          <h3>🔖 Suggested Meta Tags</h3>
-          <div class="meta-box">
+          <h4>💡 Suggestions</h4>
+          <ul id="suggestionsList" style="padding-left:20px; color:var(--warm-gray);"></ul>
+          <h4 style="margin-top:16px;">🔖 Suggested Meta Tags</h4>
+          <div style="background:var(--cream); padding:12px; border-radius:var(--radius-sm);">
             <div><strong>Meta Title:</strong> <span id="suggestedTitle"></span></div>
             <div><strong>Meta Description:</strong> <span id="suggestedDesc"></span></div>
           </div>
-          <h3>🏷️ Related Keywords</h3>
+          <h4 style="margin-top:16px;">🏷️ Related Keywords</h4>
           <div class="tags" id="relatedKeywords"></div>
-          <h3>🔎 Sub‑Keywords</h3>
+          <h4 style="margin-top:16px;">🔎 Sub‑Keywords</h4>
           <div class="tags" id="subKeywords"></div>
         </div>
       </div>
+    </div>
 
-      <!-- SITE AUDIT TAB -->
-      <div id="siteauditTab" class="tab-content" style="display:none;">
-        <div class="analyzer-card">
-          <h2>🌐 Website SEO Audit</h2>
-          <p>Analyze any live URL for on‑page SEO, performance, and content quality.</p>
-          <div class="form-group">
-            <label>URL to audit</label>
-            <input type="url" id="auditUrl" placeholder="https://example.com" required>
-          </div>
-          <div class="form-group">
-            <label>Target keywords (optional, comma separated)</label>
-            <input type="text" id="auditKeywords" placeholder="e.g., freelance, business">
-          </div>
-          <button class="analyze-btn" id="runAuditBtn">🔍 Run Site Audit</button>
-          <div class="loading" id="auditLoading" style="display:none;">⏳ Auditing... (may take 20‑40 seconds)</div>
+    <!-- ====== SITE AUDIT TAB ====== -->
+    <div id="tabSiteaudit" class="tab-content">
+      <div class="card">
+        <div class="card-title">🌐 Website SEO Audit</div>
+        <div class="card-sub">Analyze any live URL for on‑page SEO, meta tags, headings, alt text, and more.</div>
+        <div class="form-group">
+          <label>URL to audit</label>
+          <input type="url" id="auditUrl" placeholder="https://example.com" required>
         </div>
-        <div class="result-card" id="auditResult" style="display:none;">
-          <h2>📊 Site Audit Report</h2>
-          <div class="meta-box">
+        <div class="form-group">
+          <label>Target keywords (optional, comma separated)</label>
+          <input type="text" id="auditKeywords" placeholder="e.g., SEO, content marketing">
+        </div>
+        <button class="submit-btn" id="runAuditBtn">🔍 Run Site Audit</button>
+        <div class="loading" id="auditLoading"><div class="spinner"></div><p>Auditing... (20-40 sec)</p></div>
+      </div>
+      <div class="result-card" id="auditResult" style="display:none;">
+        <div class="card">
+          <div class="card-title">📊 Site Audit Report</div>
+          <div class="result-meta">
             <div><strong>Page Title:</strong> <span id="auditPageTitle"></span></div>
             <div><strong>Meta Description:</strong> <span id="auditMetaDesc"></span></div>
-            <div><strong>Canonical URL:</strong> <span id="auditCanonical"></span></div>
+            <div><strong>Canonical:</strong> <span id="auditCanonical"></span></div>
             <div><strong>Word Count:</strong> <span id="auditWordCount"></span></div>
-            <div><strong>Images missing alt text:</strong> <span id="auditMissingAlt"></span></div>
-            <div><strong>Internal links:</strong> <span id="auditInternalLinks"></span> | <strong>External links:</strong> <span id="auditExternalLinks"></span></div>
-            <div><strong>SEO Score (AI):</strong> <span class="score" id="auditSeoScore"></span>/100</div>
-            <div><strong>Readability Score:</strong> <span id="auditReadability"></span></div>
+            <div><strong>Images missing alt:</strong> <span id="auditMissingAlt"></span></div>
+            <div><strong>Internal Links:</strong> <span id="auditInternalLinks"></span> · <strong>External:</strong> <span id="auditExternalLinks"></span></div>
+            <div><strong>SEO Score:</strong> <span class="score" id="auditSeoScore"></span>/100</div>
+            <div><strong>Readability:</strong> <span id="auditReadability"></span></div>
             <div><strong>Keyword Density:</strong> <span id="auditKeywordDensity"></span>%</div>
             <div><strong>Headings:</strong> H1: <span id="auditH1">0</span>, H2: <span id="auditH2">0</span>, H3: <span id="auditH3">0</span></div>
           </div>
           <div id="auditTipBox" class="tip-box" style="display:none;"></div>
-          <h3>💡 AI Suggestions</h3>
-          <ul class="suggestions-list" id="auditSuggestions"></ul>
-          <h3>🏷️ Related Keywords</h3>
+          <h4>💡 AI Suggestions</h4>
+          <ul id="auditSuggestions" style="padding-left:20px; color:var(--warm-gray);"></ul>
+          <h4 style="margin-top:16px;">🏷️ Related Keywords</h4>
           <div class="tags" id="auditRelatedKeywords"></div>
-          <h3>🔎 Sub‑Keywords</h3>
+          <h4 style="margin-top:16px;">🔎 Sub‑Keywords</h4>
           <div class="tags" id="auditSubKeywords"></div>
-          <h3>🔖 Suggested Meta Tags</h3>
-          <div class="meta-box">
+          <h4 style="margin-top:16px;">🔖 Suggested Meta Tags</h4>
+          <div style="background:var(--cream); padding:12px; border-radius:var(--radius-sm);">
             <div><strong>Meta Title:</strong> <span id="auditSuggestedTitle"></span></div>
             <div><strong>Meta Description:</strong> <span id="auditSuggestedDesc"></span></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="app-footer">
-    © 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult
-  </div>
+  </main>
+</div>
 
-  <script>
-    // ====== FIREBASE CONFIG ======
-    const firebaseConfig = {
-      apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
-      authDomain: "seo-writer-teajay.firebaseapp.com",
-      projectId: "seo-writer-teajay",
-      storageBucket: "seo-writer-teajay.firebasestorage.app",
-      messagingSenderId: "74159728277",
-      appId: "1:74159728277:web:f0ac81682c20ce67fd1d9c",
-      measurementId: "G-L26ZTRD6L8"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+<!-- ====== FOOTER ====== -->
+<footer style="background:var(--charcoal); border-top:1px solid rgba(255,255,255,0.06); padding:30px 20px; text-align:center; margin-top:40px;">
+  <p style="font-size:13px; color:rgba(250,248,245,0.35);">© 2026 TeaJay Konsult Ltd. All rights reserved. · Built with care by Pamilerin Adetunji Ajala</p>
+</footer>
 
-    const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336";
-    let currentUser = null;
-    let currentGenerations = [];
-    let currentAuditResult = null;
+<!-- ====== PWA INSTALL ====== -->
+<button id="install-btn" style="position:fixed;bottom:20px;right:20px;z-index:999;background:var(--teal);color:white;border:none;padding:10px 18px;border-radius:var(--radius-md);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(45,106,79,0.3);display:none;align-items:center;gap:6px;">⬇️ Install App</button>
 
-    // ====== ESCAPE HTML ======
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
+<!-- ====== iOS BANNER ====== -->
+<div id="ios-banner" style="position:fixed;bottom:0;left:0;right:0;background:var(--charcoal);color:var(--cream);padding:12px 20px;display:none;align-items:center;justify-content:center;gap:12px;font-size:13px;z-index:998;border-top:1px solid rgba(255,255,255,0.08);">
+  <span>📱 Add SEOWriter Pro to your home screen</span>
+  <button onclick="document.getElementById('ios-banner').style.display='none'" style="background:var(--teal);color:white;border:none;padding:4px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Got it</button>
+</div>
+
+<script>
+// ====== FIREBASE CONFIG ======
+const firebaseConfig = {
+  apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
+  authDomain: "seo-writer-teajay.firebaseapp.com",
+  projectId: "seo-writer-teajay",
+  storageBucket: "seo-writer-teajay.firebasestorage.app",
+  messagingSenderId: "74159728277",
+  appId: "1:74159728277:web:f0ac81682c20ce67fd1d9c",
+  measurementId: "G-L26ZTRD6L8"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const PAYSTACK_PUBLIC_KEY = "pk_live_ce0264fa9695eb612296e47c5030d532f502a336";
+let currentUser = null;
+let currentGenerations = [];
+let currentAuditResult = null;
+let currentContent = null;
+
+// ====== ESCAPE HTML ======
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+}
+
+// ====== TOAST ======
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(255,255,255,0.08);font-family:Inter,sans-serif;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ====== AUTH STATE ======
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
+      const used = data.generationsUsedThisMonth || 0;
+      const limit = data.plan === 'pro' ? 25 : 8;
+      document.getElementById('usageText').textContent = `${used} / ${limit} generations this month`;
+      document.getElementById('userName').textContent = data.name || 'Pastor';
+    } else {
+      await db.collection('users').doc(user.uid).set({
+        email: user.email,
+        plan: 'free',
+        generationsUsedThisMonth: 0,
+        monthlyResetDate: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       });
     }
+    loadHistory();
+  } else {
+    window.location.href = '/index.html';
+  }
+});
 
-    // ====== TOAST ======
-    function showToast(msg) {
-      const t = document.createElement('div');
-      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(0,212,255,0.2);';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+// ====== LOAD HISTORY ======
+async function loadHistory() {
+  if (!currentUser) return;
+  const historyDiv = document.getElementById('historyList');
+  historyDiv.innerHTML = '<div class="loading-spinner">Loading history...</div>';
+  try {
+    const genSnapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
+      .orderBy('generatedAt', 'desc').get();
+    const auditSnapshot = await db.collection('users').doc(currentUser.uid).collection('audits')
+      .orderBy('auditedAt', 'desc').get();
+    let items = [];
+    genSnapshot.forEach(doc => {
+      const data = doc.data();
+      items.push({ type: 'generation', id: doc.id, data, date: data.generatedAt || data.createdAt || new Date().toISOString() });
+    });
+    auditSnapshot.forEach(doc => {
+      const data = doc.data();
+      items.push({ type: 'audit', id: doc.id, data, date: data.auditedAt || data.createdAt || new Date().toISOString() });
+    });
+    if (items.length === 0) {
+      historyDiv.innerHTML = '<div class="history-empty">No history yet. Generate something!</div>';
+      return;
     }
-
-    // ====== AUTH STATE ======
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        document.getElementById('userEmail').textContent = user.email;
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-          const data = userDoc.data();
-          const plan = data.plan || 'free';
-          document.getElementById('userPlan').textContent = plan === 'pro' ? 'Pro' : 'Free';
-          document.getElementById('usageCount').textContent = data.generationsUsedThisMonth || 0;
-          document.getElementById('usageLimit').textContent = plan === 'pro' ? '25' : '8';
-        } else {
-          await db.collection('users').doc(user.uid).set({
-            email: user.email,
-            plan: 'free',
-            generationsUsedThisMonth: 0,
-            monthlyResetDate: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-          });
+    items.sort((a,b) => new Date(b.date) - new Date(a.date));
+    historyDiv.innerHTML = items.map(item => {
+      const title = item.type === 'generation' ? (item.data.topic || 'Untitled') : (item.data.url || 'Untitled Audit');
+      return `
+        <div class="history-item" data-type="${item.type}" data-id="${item.id}">
+          <div class="htitle">${item.type === 'generation' ? '📄' : '🌐'} ${escapeHtml(title.substring(0,50))}</div>
+          <div class="hdate">${new Date(item.date).toLocaleString()}</div>
+        </div>
+      `;
+    }).join('');
+    document.querySelectorAll('.history-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const type = el.dataset.type;
+        const id = el.dataset.id;
+        const item = items.find(i => i.id === id);
+        if (item) {
+          if (type === 'generation') displayGeneration(item.data);
+          else displayAudit(item.data);
+          document.querySelector(`.tab-btn[data-tab="${type === 'generation' ? 'generate' : 'siteaudit'}"]`)?.click();
         }
-        loadHistory();
-      } else {
-        window.location.href = '/index.html';
-      }
-    });
-
-    // ====== LOAD HISTORY (FIXED) ======
-    async function loadHistory() {
-      if (!currentUser) return;
-      const historyDiv = document.getElementById('historyList');
-      // Show loading state
-      historyDiv.innerHTML = '<div class="loading-spinner">Loading history...</div>';
-      try {
-        console.log('📜 Loading history for user:', currentUser.uid);
-        const genSnapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
-          .orderBy('generatedAt', 'desc').get();
-        const auditSnapshot = await db.collection('users').doc(currentUser.uid).collection('audits')
-          .orderBy('auditedAt', 'desc').get();
-        let items = [];
-        genSnapshot.forEach(doc => {
-          const data = doc.data();
-          items.push({
-            type: 'generation',
-            id: doc.id,
-            data: data,
-            date: data.generatedAt || data.createdAt || new Date().toISOString()
-          });
-        });
-        auditSnapshot.forEach(doc => {
-          const data = doc.data();
-          items.push({
-            type: 'audit',
-            id: doc.id,
-            data: data,
-            date: data.auditedAt || data.createdAt || new Date().toISOString()
-          });
-        });
-        console.log('📊 Found items:', items.length);
-        if (items.length === 0) {
-          historyDiv.innerHTML = '<div class="history-empty">No history yet. Generate an article or run an audit!</div>';
-          return;
-        }
-        items.sort((a, b) => new Date(b.date) - new Date(a.date));
-        historyDiv.innerHTML = items.map(item => {
-          const title = item.type === 'generation'
-            ? (item.data.topic || 'Untitled Article')
-            : (item.data.url || 'Untitled Audit');
-          const emoji = item.type === 'generation' ? '📄' : '🌐';
-          return `
-            <div class="history-item" data-type="${item.type}" data-id="${item.id}">
-              <div class="history-title">${emoji} ${escapeHtml(title.substring(0, 50))}</div>
-              <div class="history-date">${new Date(item.date).toLocaleString()}</div>
-            </div>
-          `;
-        }).join('');
-        // Attach click events
-        document.querySelectorAll('.history-item').forEach(el => {
-          el.addEventListener('click', () => {
-            const type = el.getAttribute('data-type');
-            const id = el.getAttribute('data-id');
-            const item = items.find(i => i.id === id);
-            if (item) {
-              if (type === 'generation') {
-                displayGeneration(item.data);
-                // Switch to generate tab
-                document.querySelector('[data-tab="generate"]').click();
-              } else if (type === 'audit') {
-                displayAudit(item.data);
-                document.querySelector('[data-tab="siteaudit"]').click();
-              }
-            }
-          });
-        });
-      } catch (err) {
-        console.error('Failed to load history:', err);
-        historyDiv.innerHTML = `<div class="history-empty" style="color:#ef4444;">Error loading history: ${err.message}</div>`;
-      }
-    }
-
-    // ====== DISPLAY FUNCTIONS ======
-    function displayGeneration(gen) {
-      const result = gen.result || {};
-      document.getElementById('metaTitle').textContent = result.metaTitle || 'N/A';
-      document.getElementById('metaDesc').textContent = result.metaDescription || 'N/A';
-      document.getElementById('seoScore').textContent = result.seoScore || 'N/A';
-      const tagsContainer = document.getElementById('tagsContainer');
-      tagsContainer.innerHTML = (result.suggestedTags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
-      document.getElementById('articleContent').innerHTML = result.article || '<p>No content available.</p>';
-      if (result.readabilityScore) {
-        document.getElementById('readabilityScore').textContent = `📖 Readability Score: ${result.readabilityScore}`;
-      } else {
-        document.getElementById('readabilityScore').textContent = '';
-      }
-      displayAdvancedSections(result);
-      document.getElementById('resultCard').style.display = 'block';
-      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function displayAdvancedSections(result) {
-      // FAQ
-      const faqContainer = document.getElementById('faqContainer');
-      const faqList = document.getElementById('faqList');
-      if (result.faqSection && result.faqSection.length > 0) {
-        faqContainer.style.display = 'block';
-        faqList.innerHTML = result.faqSection.map((item, i) => `
-          <div style="margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
-            <strong>${i+1}. ${escapeHtml(item.question)}</strong>
-            <p style="margin-top:4px; color:#475569;">${escapeHtml(item.answer)}</p>
-          </div>
-        `).join('');
-      } else { faqContainer.style.display = 'none'; }
-
-      const tocContainer = document.getElementById('tocContainer');
-      const tocList = document.getElementById('tocList');
-      if (result.tableOfContents && result.tableOfContents.length > 0) {
-        tocContainer.style.display = 'block';
-        tocList.innerHTML = result.tableOfContents.map(heading => `<li style="margin-bottom:4px;">${escapeHtml(heading)}</li>`).join('');
-      } else { tocContainer.style.display = 'none'; }
-
-      const takeawaysContainer = document.getElementById('takeawaysContainer');
-      const takeawaysList = document.getElementById('takeawaysList');
-      if (result.keyTakeaways && result.keyTakeaways.length > 0) {
-        takeawaysContainer.style.display = 'block';
-        takeawaysList.innerHTML = result.keyTakeaways.map(takeaway => `<li style="margin-bottom:4px;">${escapeHtml(takeaway)}</li>`).join('');
-      } else { takeawaysContainer.style.display = 'none'; }
-    }
-
-    function displayAudit(auditData) {
-      document.getElementById('auditPageTitle').textContent = auditData.pageTitle || 'N/A';
-      document.getElementById('auditMetaDesc').textContent = auditData.metaDescription || 'N/A';
-      document.getElementById('auditCanonical').textContent = auditData.canonical || 'N/A';
-      document.getElementById('auditWordCount').textContent = auditData.wordCount || 0;
-      document.getElementById('auditMissingAlt').textContent = auditData.missingAltCount || 0;
-      document.getElementById('auditInternalLinks').textContent = auditData.internalLinks || 0;
-      document.getElementById('auditExternalLinks').textContent = auditData.externalLinks || 0;
-      document.getElementById('auditSeoScore').textContent = auditData.seoScore || 'N/A';
-      document.getElementById('auditReadability').textContent = auditData.readability || 'N/A';
-      document.getElementById('auditKeywordDensity').textContent = auditData.keywordDensity || 'N/A';
-      document.getElementById('auditH1').textContent = auditData.headings?.h1 || 0;
-      document.getElementById('auditH2').textContent = auditData.headings?.h2 || 0;
-      document.getElementById('auditH3').textContent = auditData.headings?.h3 || 0;
-      const suggestionsUl = document.getElementById('auditSuggestions');
-      suggestionsUl.innerHTML = (auditData.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
-      const relatedDiv = document.getElementById('auditRelatedKeywords');
-      relatedDiv.innerHTML = (auditData.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-      const subDiv = document.getElementById('auditSubKeywords');
-      subDiv.innerHTML = (auditData.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-      document.getElementById('auditSuggestedTitle').textContent = auditData.metaTitle || 'N/A';
-      document.getElementById('auditSuggestedDesc').textContent = auditData.metaDescriptionSuggestion || 'N/A';
-      const tipBox = document.getElementById('auditTipBox');
-      if (auditData.seoScore < 70) {
-        let tipMessage = '';
-        if (auditData.missingAltCount > 0) tipMessage += `🚫 Add alt text to ${auditData.missingAltCount} images. `;
-        if (auditData.wordCount < 300) tipMessage += `📄 Increase content length (currently ${auditData.wordCount} words). `;
-        if (auditData.headings?.h1 === 0) tipMessage += `🔖 Use an H1 heading. `;
-        if (auditData.keywordDensity < 0.5) tipMessage += `🔑 Increase keyword density (target 1-2%). `;
-        if (auditData.readability < 50) tipMessage += `📖 Improve readability: shorter sentences, simpler words. `;
-        if (!tipMessage) tipMessage = `🎯 Focus on the AI suggestions above to boost your SEO score.`;
-        tipBox.innerHTML = `<h4>💪 Boost Your Score</h4><p>${tipMessage}</p>`;
-        tipBox.style.display = 'block';
-      } else { tipBox.style.display = 'none'; }
-      document.getElementById('auditResult').style.display = 'block';
-      currentAuditResult = auditData;
-    }
-
-    // ====== LOGOUT ======
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await auth.signOut();
-      window.location.href = '/index.html';
-    });
-
-    // ====== UPGRADE ======
-    document.getElementById('upgradeBtn').addEventListener('click', () => {
-      if (!currentUser) return;
-      const paystack = new PaystackPop();
-      paystack.newTransaction({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: currentUser.email,
-        amount: 1500 * 100,
-        currency: 'NGN',
-        metadata: { userId: currentUser.uid, plan: 'pro' },
-        onSuccess: (transaction) => {
-          alert(`Payment successful! Reference: ${transaction.reference}. Your plan will be upgraded shortly.`);
-          setTimeout(() => location.reload(), 3000);
-        },
-        onCancel: () => alert('Payment cancelled.')
       });
     });
+  } catch (err) {
+    console.error('History error:', err);
+    historyDiv.innerHTML = `<div class="history-empty" style="color:var(--coral);">Error loading history</div>`;
+  }
+}
 
-    // ====== GENERATE ======
-    const generateBtn = document.getElementById('generateBtn');
-    const loadingDiv = document.getElementById('loading');
-    const resultCard = document.getElementById('resultCard');
+// ====== DISPLAY FUNCTIONS ======
+function displayGeneration(data) {
+  const result = data.result || {};
+  document.getElementById('metaTitle').textContent = result.metaTitle || 'N/A';
+  document.getElementById('metaDesc').textContent = result.metaDescription || 'N/A';
+  document.getElementById('seoScore').textContent = result.seoScore || 'N/A';
+  document.getElementById('tagsContainer').innerHTML = (result.suggestedTags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+  document.getElementById('articleContent').innerHTML = result.article || '<p>No content available.</p>';
+  document.getElementById('readabilityScore').textContent = result.readabilityScore ? `📖 Readability Score: ${result.readabilityScore}` : '';
+  displayAdvancedSections(result);
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+}
 
-    generateBtn.addEventListener('click', async () => {
-      if (!currentUser) return;
-      const primaryKeyword = document.getElementById('primaryKeyword').value.trim();
-      if (!primaryKeyword) { alert('Please enter a primary keyword.'); return; }
+function displayAdvancedSections(result) {
+  const faqContainer = document.getElementById('faqContainer');
+  const faqList = document.getElementById('faqList');
+  if (result.faqSection && result.faqSection.length > 0) {
+    faqContainer.style.display = 'block';
+    faqList.innerHTML = result.faqSection.map((q,i) => `<div style="margin-bottom:8px;"><strong>${i+1}. ${escapeHtml(q.question)}</strong><p style="color:var(--warm-gray);">${escapeHtml(q.answer)}</p></div>`).join('');
+  } else { faqContainer.style.display = 'none'; }
+  const tocContainer = document.getElementById('tocContainer');
+  const tocList = document.getElementById('tocList');
+  if (result.tableOfContents && result.tableOfContents.length > 0) {
+    tocContainer.style.display = 'block';
+    tocList.innerHTML = result.tableOfContents.map(h => `<li>${escapeHtml(h)}</li>`).join('');
+  } else { tocContainer.style.display = 'none'; }
+  const takeawaysContainer = document.getElementById('takeawaysContainer');
+  const takeawaysList = document.getElementById('takeawaysList');
+  if (result.keyTakeaways && result.keyTakeaways.length > 0) {
+    takeawaysContainer.style.display = 'block';
+    takeawaysList.innerHTML = result.keyTakeaways.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  } else { takeawaysContainer.style.display = 'none'; }
+}
 
-      const secondaryKeywords = document.getElementById('secondaryKeywords').value.trim();
-      const blogTitle = document.getElementById('blogTitle').value.trim();
-      const targetAudience = document.getElementById('targetAudience').value.trim();
-      const country = document.getElementById('country').value;
-      const language = document.getElementById('language').value;
-      const searchIntent = document.getElementById('searchIntent').value;
-      const authorName = document.getElementById('authorName').value.trim();
-      const authorCredentials = document.getElementById('authorCredentials').value.trim();
-      const length = document.getElementById('length').value;
-      const tone = document.getElementById('tone').value;
-      const readingLevel = document.getElementById('readingLevel').value;
-      const seoTitle = document.getElementById('seoTitle').value.trim();
-      const metaDescription = document.getElementById('metaDescription').value.trim();
-      const includeFaq = document.getElementById('includeFaq').checked;
-      const includeToc = document.getElementById('includeToc').checked;
-      const includeTakeaways = document.getElementById('includeTakeaways').checked;
-      const eeatMode = document.getElementById('eeatMode').checked;
-      const humanizationMode = document.getElementById('humanizationMode').checked;
+function displayAudit(data) {
+  document.getElementById('auditPageTitle').textContent = data.pageTitle || 'N/A';
+  document.getElementById('auditMetaDesc').textContent = data.metaDescription || 'N/A';
+  document.getElementById('auditCanonical').textContent = data.canonical || 'N/A';
+  document.getElementById('auditWordCount').textContent = data.wordCount || 0;
+  document.getElementById('auditMissingAlt').textContent = data.missingAltCount || 0;
+  document.getElementById('auditInternalLinks').textContent = data.internalLinks || 0;
+  document.getElementById('auditExternalLinks').textContent = data.externalLinks || 0;
+  document.getElementById('auditSeoScore').textContent = data.seoScore || 'N/A';
+  document.getElementById('auditReadability').textContent = data.readability || 'N/A';
+  document.getElementById('auditKeywordDensity').textContent = data.keywordDensity || 'N/A';
+  document.getElementById('auditH1').textContent = data.headings?.h1 || 0;
+  document.getElementById('auditH2').textContent = data.headings?.h2 || 0;
+  document.getElementById('auditH3').textContent = data.headings?.h3 || 0;
+  document.getElementById('auditSuggestions').innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  document.getElementById('auditRelatedKeywords').innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+  document.getElementById('auditSubKeywords').innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+  document.getElementById('auditSuggestedTitle').textContent = data.metaTitle || 'N/A';
+  document.getElementById('auditSuggestedDesc').textContent = data.metaDescriptionSuggestion || 'N/A';
+  const tipBox = document.getElementById('auditTipBox');
+  if (data.seoScore < 70) {
+    let msg = '';
+    if (data.missingAltCount > 0) msg += `🚫 Add alt text to ${data.missingAltCount} images. `;
+    if (data.wordCount < 300) msg += `📄 Increase content length (currently ${data.wordCount} words). `;
+    if (data.headings?.h1 === 0) msg += `🔖 Use an H1 heading. `;
+    if (data.keywordDensity < 0.5) msg += `🔑 Increase keyword density (target 1-2%). `;
+    if (data.readability < 50) msg += `📖 Improve readability. `;
+    if (!msg) msg = '🎯 Focus on the AI suggestions above.';
+    tipBox.innerHTML = `<h4>💪 Boost Your Score</h4><p>${msg}</p>`;
+    tipBox.style.display = 'block';
+  } else { tipBox.style.display = 'none'; }
+  document.getElementById('auditResult').style.display = 'block';
+}
 
-      loadingDiv.style.display = 'block';
-      resultCard.style.display = 'none';
+// ====== CONTENT TYPE SWITCHING ======
+document.getElementById('contentType').addEventListener('change', function() {
+  const val = this.value;
+  document.getElementById('blogFields').style.display = val === 'blog' ? 'block' : 'none';
+  document.getElementById('facebookFields').style.display = val === 'facebook' ? 'block' : 'none';
+  document.getElementById('linkedinFields').style.display = val === 'linkedin' ? 'block' : 'none';
+  document.getElementById('advancedOptions').style.display = val === 'blog' ? 'block' : 'none';
+});
 
-      try {
-        const idToken = await currentUser.getIdToken();
-        const res = await fetch('/api/generate-seo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({
-            primaryKeyword, secondaryKeywords, blogTitle, targetAudience,
-            country, language, searchIntent, authorName, authorCredentials,
-            length, tone, readingLevel, seoTitle, metaDescription,
-            includeFaq, includeToc, includeTakeaways, eeatMode, humanizationMode
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Generation failed');
-        document.getElementById('metaTitle').textContent = data.metaTitle || 'N/A';
-        document.getElementById('metaDesc').textContent = data.metaDescription || 'N/A';
-        document.getElementById('seoScore').textContent = data.seoScore || 'N/A';
-        const tagsContainer = document.getElementById('tagsContainer');
-        tagsContainer.innerHTML = (data.suggestedTags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
-        document.getElementById('articleContent').innerHTML = data.article || '<p>No content available.</p>';
-        if (data.readabilityScore) {
-          document.getElementById('readabilityScore').textContent = `📖 Readability Score: ${data.readabilityScore}`;
-        }
-        displayAdvancedSections(data);
-        resultCard.style.display = 'block';
-        // Reload history after generation
-        loadHistory();
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        if (userDoc.exists) {
-          document.getElementById('usageCount').textContent = userDoc.data().generationsUsedThisMonth || 0;
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-        console.error(err);
-      } finally {
-        loadingDiv.style.display = 'none';
-      }
+// ====== GENERATE ======
+document.getElementById('generateBtn').addEventListener('click', async function() {
+  if (!currentUser) return;
+  const contentType = document.getElementById('contentType').value;
+  let payload = { contentType };
+  if (contentType === 'blog') {
+    const pk = document.getElementById('primaryKeyword').value.trim();
+    if (!pk) { showToast('Please enter a primary keyword.'); return; }
+    payload = { ...payload, primaryKeyword: pk, secondaryKeywords: document.getElementById('secondaryKeywords').value.trim(), blogTitle: document.getElementById('blogTitle').value.trim(), targetAudience: document.getElementById('targetAudience').value.trim(), country: document.getElementById('country').value, language: document.getElementById('language').value, searchIntent: document.getElementById('searchIntent').value, authorName: document.getElementById('authorName').value.trim(), authorCredentials: document.getElementById('authorCredentials').value.trim(), length: document.getElementById('length').value, tone: document.getElementById('tone').value, readingLevel: document.getElementById('readingLevel').value, seoTitle: document.getElementById('seoTitle').value.trim(), metaDescription: document.getElementById('metaDescription').value.trim(), includeFaq: document.getElementById('includeFaq').checked, includeToc: document.getElementById('includeToc').checked, includeTakeaways: document.getElementById('includeTakeaways').checked, eeatMode: document.getElementById('eeatMode').checked, humanizationMode: document.getElementById('humanizationMode').checked };
+  } else if (contentType === 'facebook') {
+    const topic = document.getElementById('fbTopic').value.trim();
+    if (!topic) { showToast('Please enter a topic/hook.'); return; }
+    payload = { ...payload, topic, audience: document.getElementById('fbAudience').value.trim(), cta: document.getElementById('fbCta').value.trim(), hashtags: document.getElementById('fbHashtags').value.trim(), tone: document.getElementById('fbTone').value, length: document.getElementById('fbLength').value };
+  } else if (contentType === 'linkedin') {
+    const topic = document.getElementById('liTopic').value.trim();
+    if (!topic) { showToast('Please enter a topic/headline.'); return; }
+    payload = { ...payload, topic, audience: document.getElementById('liAudience').value.trim(), cta: document.getElementById('liCta').value.trim(), industry: document.getElementById('liIndustry').value.trim(), tone: document.getElementById('liTone').value, length: document.getElementById('liLength').value };
+  }
+  const loading = document.getElementById('loading');
+  const resultCard = document.getElementById('resultCard');
+  loading.style.display = 'block';
+  resultCard.style.display = 'none';
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/generate-seo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify(payload)
     });
-
-    // ====== ANALYZE ======
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const analyzeLoading = document.getElementById('analyzeLoading');
-    const analyzeResult = document.getElementById('analyzeResult');
-
-    analyzeBtn.addEventListener('click', async () => {
-      const content = document.getElementById('analyzeContent').value.trim();
-      const targetKeywords = document.getElementById('analyzeKeywords').value.trim();
-      if (!content) { alert('Please paste your article content.'); return; }
-      analyzeLoading.style.display = 'block';
-      analyzeResult.style.display = 'none';
-      try {
-        const idToken = await currentUser.getIdToken();
-        const res = await fetch('/api/analyze-seo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({ content, targetKeywords })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Analysis failed');
-        document.getElementById('analyzeScore').textContent = data.score;
-        document.getElementById('wordCount').textContent = data.wordCount;
-        document.getElementById('keywordDensity').textContent = data.keywordDensity;
-        document.getElementById('readability').textContent = data.readability;
-        document.getElementById('h1Count').textContent = data.headings?.h1 || 0;
-        document.getElementById('h2Count').textContent = data.headings?.h2 || 0;
-        document.getElementById('h3Count').textContent = data.headings?.h3 || 0;
-        const suggestionsUl = document.getElementById('suggestionsList');
-        suggestionsUl.innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
-        document.getElementById('suggestedTitle').textContent = data.metaTitle || 'Not available';
-        document.getElementById('suggestedDesc').textContent = data.metaDescription || 'Not available';
-        const relatedDiv = document.getElementById('relatedKeywords');
-        relatedDiv.innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        const subDiv = document.getElementById('subKeywords');
-        subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        analyzeResult.style.display = 'block';
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        analyzeLoading.style.display = 'none';
-      }
-    });
-
-    // ====== SITE AUDIT ======
-    const runAuditBtn = document.getElementById('runAuditBtn');
-    const auditLoading = document.getElementById('auditLoading');
-    const auditResultDiv = document.getElementById('auditResult');
-
-    runAuditBtn.addEventListener('click', async () => {
-      const url = document.getElementById('auditUrl').value.trim();
-      const keywords = document.getElementById('auditKeywords').value.trim();
-      if (!url) { alert('Please enter a valid URL.'); return; }
-      auditLoading.style.display = 'block';
-      auditResultDiv.style.display = 'none';
-      try {
-        const idToken = await currentUser.getIdToken();
-        const res = await fetch('/api/site-audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({ url, targetKeywords: keywords })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Audit failed');
-        document.getElementById('auditPageTitle').textContent = data.pageTitle || 'N/A';
-        document.getElementById('auditMetaDesc').textContent = data.metaDescription || 'N/A';
-        document.getElementById('auditCanonical').textContent = data.canonical || 'N/A';
-        document.getElementById('auditWordCount').textContent = data.wordCount || 0;
-        document.getElementById('auditMissingAlt').textContent = data.missingAltCount || 0;
-        document.getElementById('auditInternalLinks').textContent = data.internalLinks || 0;
-        document.getElementById('auditExternalLinks').textContent = data.externalLinks || 0;
-        document.getElementById('auditSeoScore').textContent = data.seoScore || 'N/A';
-        document.getElementById('auditReadability').textContent = data.readability || 'N/A';
-        document.getElementById('auditKeywordDensity').textContent = data.keywordDensity || 'N/A';
-        document.getElementById('auditH1').textContent = data.headings?.h1 || 0;
-        document.getElementById('auditH2').textContent = data.headings?.h2 || 0;
-        document.getElementById('auditH3').textContent = data.headings?.h3 || 0;
-        const suggestionsUl = document.getElementById('auditSuggestions');
-        suggestionsUl.innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
-        const relatedDiv = document.getElementById('auditRelatedKeywords');
-        relatedDiv.innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        const subDiv = document.getElementById('auditSubKeywords');
-        subDiv.innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
-        document.getElementById('auditSuggestedTitle').textContent = data.metaTitle || 'N/A';
-        document.getElementById('auditSuggestedDesc').textContent = data.metaDescriptionSuggestion || 'N/A';
-        const tipBox = document.getElementById('auditTipBox');
-        if (data.seoScore < 70) {
-          let tipMessage = '';
-          if (data.missingAltCount > 0) tipMessage += `🚫 Add alt text to ${data.missingAltCount} images. `;
-          if (data.wordCount < 300) tipMessage += `📄 Increase content length (currently ${data.wordCount} words). `;
-          if (data.headings?.h1 === 0) tipMessage += `🔖 Use an H1 heading. `;
-          if (data.keywordDensity < 0.5) tipMessage += `🔑 Increase keyword density (target 1-2%). `;
-          if (data.readability < 50) tipMessage += `📖 Improve readability: shorter sentences, simpler words. `;
-          if (!tipMessage) tipMessage = `🎯 Focus on the AI suggestions above to boost your SEO score.`;
-          tipBox.innerHTML = `<h4>💪 Boost Your Score</h4><p>${tipMessage}</p>`;
-          tipBox.style.display = 'block';
-        } else { tipBox.style.display = 'none'; }
-        auditResultDiv.style.display = 'block';
-        currentAuditResult = data;
-        // Save audit to Firestore
-        await db.collection('users').doc(currentUser.uid).collection('audits').add({
-          url, targetKeywords: keywords, auditedAt: new Date().toISOString(), ...data
-        });
-        // Reload history
-        loadHistory();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        auditLoading.style.display = 'none';
-      }
-    });
-
-    // ====== COPY BUTTONS ======
-    document.getElementById('copyBtn').addEventListener('click', async () => {
-      const articleHtml = document.getElementById('articleContent').innerHTML;
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = articleHtml;
-      const blockTags = ['p','h1','h2','h3','h4','h5','h6','li','div'];
-      blockTags.forEach(tag => {
-        tempDiv.querySelectorAll(tag).forEach(el => el.insertAdjacentText('afterend', '\n\n'));
-      });
-      let plainText = tempDiv.innerText.replace(/\n{3,}/g, '\n\n').trim();
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            'text/html': new Blob([articleHtml], { type: 'text/html' }),
-            'text/plain': new Blob([plainText], { type: 'text/plain' })
-          })
-        ]);
-        const btn = document.getElementById('copyBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '✅ Copied!';
-        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
-      } catch (err) {
-        navigator.clipboard.writeText(plainText);
-      }
-    });
-
-    document.getElementById('copyPlainBtn').addEventListener('click', async () => {
-      const articleHtml = document.getElementById('articleContent').innerHTML;
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = articleHtml;
-      const blockTags = ['p','h1','h2','h3','h4','h5','h6','li','div'];
-      blockTags.forEach(tag => {
-        tempDiv.querySelectorAll(tag).forEach(el => el.insertAdjacentText('afterend', '\n\n'));
-      });
-      let plainText = tempDiv.innerText.replace(/\n{3,}/g, '\n\n').trim();
-      try {
-        await navigator.clipboard.writeText(plainText);
-        const btn = document.getElementById('copyPlainBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '✅ Copied!';
-        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
-      } catch (err) {
-        alert('Failed to copy.');
-      }
-    });
-
-    // ====== TAB SWITCHING ======
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.getAttribute('data-tab');
-        document.getElementById('generateTab').style.display = tab === 'generate' ? 'block' : 'none';
-        document.getElementById('analyzeTab').style.display = tab === 'analyze' ? 'block' : 'none';
-        document.getElementById('siteauditTab').style.display = tab === 'siteaudit' ? 'block' : 'none';
-      });
-    });
-
-    // ====== REFRESH HISTORY BUTTON ======
-    document.getElementById('refreshHistoryBtn').addEventListener('click', () => {
-      loadHistory();
-      showToast('🔄 History refreshed');
-    });
-
-    // ====== SIDEBAR TOGGLE ======
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    menuToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-    });
-    document.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuToggle) {
-        sidebar.classList.remove('open');
-      }
-    });
-
-    // ====== PWA ======
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBtn = document.getElementById('installBtn');
-      if (installBtn) installBtn.style.display = 'flex';
-    });
-    document.getElementById('installBtn')?.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') deferredPrompt = null;
-        document.getElementById('installBtn').style.display = 'none';
-      }
-    });
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Generation failed');
+    // Display result (same as before)
+    document.getElementById('metaTitle').textContent = data.metaTitle || 'N/A';
+    document.getElementById('metaDesc').textContent = data.metaDescription || 'N/A';
+    document.getElementById('seoScore').textContent = data.seoScore || 'N/A';
+    document.getElementById('tagsContainer').innerHTML = (data.suggestedTags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    document.getElementById('articleContent').innerHTML = data.article || '<p>No content available.</p>';
+    document.getElementById('readabilityScore').textContent = data.readabilityScore ? `📖 Readability Score: ${data.readabilityScore}` : '';
+    displayAdvancedSections(data);
+    resultCard.style.display = 'block';
+    loadHistory();
+    // Update usage
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    if (userDoc.exists) {
+      const d = userDoc.data();
+      const used = d.generationsUsedThisMonth || 0;
+      const limit = d.plan === 'pro' ? 25 : 8;
+      document.getElementById('usageText').textContent = `${used} / ${limit} generations this month`;
     }
-  </script>
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  } finally {
+    loading.style.display = 'none';
+  }
+});
+
+// ====== ANALYZE ======
+document.getElementById('analyzeBtn').addEventListener('click', async function() {
+  const content = document.getElementById('analyzeContent').value.trim();
+  const keywords = document.getElementById('analyzeKeywords').value.trim();
+  if (!content) { showToast('Please paste some content.'); return; }
+  const loading = document.getElementById('analyzeLoading');
+  const result = document.getElementById('analyzeResult');
+  loading.style.display = 'block';
+  result.style.display = 'none';
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/analyze-seo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({ content, targetKeywords: keywords })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Analysis failed');
+    document.getElementById('analyzeScore').textContent = data.score;
+    document.getElementById('wordCount').textContent = data.wordCount;
+    document.getElementById('keywordDensity').textContent = data.keywordDensity;
+    document.getElementById('readability').textContent = data.readability;
+    document.getElementById('h1Count').textContent = data.headings?.h1 || 0;
+    document.getElementById('h2Count').textContent = data.headings?.h2 || 0;
+    document.getElementById('h3Count').textContent = data.headings?.h3 || 0;
+    document.getElementById('suggestionsList').innerHTML = (data.suggestions || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    document.getElementById('suggestedTitle').textContent = data.metaTitle || 'N/A';
+    document.getElementById('suggestedDesc').textContent = data.metaDescription || 'N/A';
+    document.getElementById('relatedKeywords').innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+    document.getElementById('subKeywords').innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+    result.style.display = 'block';
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  } finally {
+    loading.style.display = 'none';
+  }
+});
+
+// ====== SITE AUDIT ======
+document.getElementById('runAuditBtn').addEventListener('click', async function() {
+  const url = document.getElementById('auditUrl').value.trim();
+  const keywords = document.getElementById('auditKeywords').value.trim();
+  if (!url) { showToast('Please enter a valid URL.'); return; }
+  const loading = document.getElementById('auditLoading');
+  const result = document.getElementById('auditResult');
+  loading.style.display = 'block';
+  result.style.display = 'none';
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/site-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({ url, targetKeywords: keywords })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Audit failed');
+    displayAudit(data);
+    await db.collection('users').doc(currentUser.uid).collection('audits').add({
+      url, targetKeywords: keywords, auditedAt: new Date().toISOString(), ...data
+    });
+    loadHistory();
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  } finally {
+    loading.style.display = 'none';
+  }
+});
+
+// ====== COPY BUTTONS ======
+document.getElementById('copyBtn').addEventListener('click', function() {
+  const html = document.getElementById('articleContent').innerHTML;
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const plain = temp.innerText;
+  navigator.clipboard.write([new ClipboardItem({
+    'text/html': new Blob([html], { type: 'text/html' }),
+    'text/plain': new Blob([plain], { type: 'text/plain' })
+  })]).then(() => showToast('✅ Copied!')).catch(() => navigator.clipboard.writeText(plain));
+});
+document.getElementById('copyPlainBtn').addEventListener('click', function() {
+  const html = document.getElementById('articleContent').innerHTML;
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  const plain = temp.innerText;
+  navigator.clipboard.writeText(plain).then(() => showToast('✅ Copied!'));
+});
+
+// ====== PDF ======
+document.getElementById('pdfBtn').addEventListener('click', function() {
+  const content = document.getElementById('articleContent').innerText;
+  if (!content) { showToast('No content to export.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const lines = doc.splitTextToSize(content, 180);
+  doc.text(lines, 10, 10);
+  doc.save('seo-article.pdf');
+  showToast('✅ PDF downloaded');
+});
+
+// ====== UPGRADE ======
+document.getElementById('upgradeBtn').addEventListener('click', function() {
+  if (!currentUser) return;
+  const paystack = new PaystackPop();
+  paystack.newTransaction({
+    key: PAYSTACK_PUBLIC_KEY,
+    email: currentUser.email,
+    amount: 1500 * 100,
+    currency: 'NGN',
+    metadata: { userId: currentUser.uid, plan: 'pro' },
+    onSuccess: (transaction) => {
+      alert(`Payment successful! Reference: ${transaction.reference}. Your plan will be upgraded shortly.`);
+      setTimeout(() => location.reload(), 3000);
+    },
+    onCancel: () => showToast('Payment cancelled.')
+  });
+});
+
+// ====== SIGN OUT ======
+document.getElementById('signOutBtn').addEventListener('click', async function() {
+  await auth.signOut();
+  window.location.href = '/index.html';
+});
+
+// ====== TABS ======
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const tab = this.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  });
+});
+
+// ====== REFRESH HISTORY ======
+document.getElementById('refreshHistoryBtn').addEventListener('click', function() {
+  loadHistory();
+  showToast('🔄 History refreshed');
+});
+
+// ====== PWA INSTALL ======
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'flex';
+});
+document.getElementById('install-btn').addEventListener('click', function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      this.style.display = 'none';
+      deferredPrompt = null;
+    });
+  }
+});
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  setTimeout(() => document.getElementById('ios-banner').style.display = 'flex', 2000);
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
 </body>
 </html>
