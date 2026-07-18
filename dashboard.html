@@ -477,6 +477,73 @@
     }
     .tip-box h4 { font-size: 15px; color: #9C6644; margin-bottom: 4px; }
 
+    /* ====== FOOTER ====== */
+    .footer {
+      background: var(--charcoal);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 40px 20px 30px;
+      text-align: center;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .footer-brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--teal);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+    }
+    .footer-brand-text {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--cream);
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .footer-links a {
+      color: rgba(250,248,245,0.5);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--cream); }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 24px auto 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom p {
+      font-size: 13px;
+      color: rgba(250,248,245,0.35);
+    }
+
     /* ====== MOBILE ====== */
     @media (max-width: 768px) {
       .dashboard-wrapper { flex-direction: column; padding: 16px; }
@@ -491,6 +558,8 @@
       .user-info .actions { justify-content: center; }
       .tj-nav a { display: none; }
       .tj-nav a.tj-btn { display: inline-flex; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
     }
   </style>
 </head>
@@ -880,9 +949,25 @@
   </main>
 </div>
 
-<!-- ====== FOOTER ====== -->
-<footer style="background:var(--charcoal); border-top:1px solid rgba(255,255,255,0.06); padding:30px 20px; text-align:center; margin-top:40px;">
-  <p style="font-size:13px; color:rgba(250,248,245,0.35);">© 2026 TeaJay Konsult Ltd. All rights reserved. · Built with care by Pamilerin Adetunji Ajala</p>
+<!-- ====== FOOTER (UPDATED) ====== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-brand-icon">✍️</div>
+      <span class="footer-brand-text">SEOWriter Pro</span>
+    </div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/#features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/contact">Contact</a>
+      <a href="https://teajaykonsult.com" target="_blank">TeaJay Konsult</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 TeaJay Konsult Ltd. All rights reserved.</p>
+    <p>Built with care by Pamilerin Adetunji Ajala</p>
+  </div>
 </footer>
 
 <!-- ====== PWA INSTALL ====== -->
