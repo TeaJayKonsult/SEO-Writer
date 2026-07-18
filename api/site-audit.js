@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Verify Firebase token (same pattern as generate-seo and analyze-seo)
+  // Verify Firebase token (same pattern)
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing authorization token' });
@@ -75,7 +75,6 @@ module.exports = async function handler(req, res) {
     });
     userId = verifyRes.localId;
   } catch (err) {
-    console.error('Token verification error:', err.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
 
@@ -97,7 +96,6 @@ module.exports = async function handler(req, res) {
   }
 
   const $ = cheerio.load(html);
-  // Remove scripts, styles, etc. for text extraction
   $('script, style, noscript, iframe').remove();
   const textContent = $('body').text().replace(/\s+/g, ' ').trim();
   const wordCount = textContent.split(/\s+/).length;
@@ -111,7 +109,6 @@ module.exports = async function handler(req, res) {
     h2: $('h2').length,
     h3: $('h3').length
   };
-  const imagesWithAlt = $('img[alt]').length;
   const imagesWithoutAlt = $('img:not([alt])').length;
   const internalLinks = $('a[href^="/"], a[href^="' + url.replace(/\/$/, '') + '"]').length;
   const externalLinks = $('a[href^="http"]').not(`a[href^="${url}"]`).length;
@@ -120,7 +117,6 @@ module.exports = async function handler(req, res) {
   const groqApiKey = process.env.GROQ_API_KEY;
   if (!groqApiKey) return res.status(500).json({ error: 'GROQ_API_KEY missing' });
 
-  // Truncate text to avoid token limits (8000 chars is safe)
   const truncatedText = textContent.substring(0, 8000);
   const systemPrompt = `You are an expert SEO analyst. Analyze the provided web page content and return a JSON object with the following fields:
 {
@@ -138,7 +134,7 @@ Be objective and helpful. If target keywords are provided, evaluate how well the
   const userPrompt = `Page content:\n\n${truncatedText}\n\nTarget keywords: ${targetKeywords || 'none provided'}`;
 
   const payload = JSON.stringify({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b', // Updated to new model
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
@@ -200,7 +196,7 @@ Be objective and helpful. If target keywords are provided, evaluate how well the
     metaDescriptionSuggestion: analysis.metaDescription
   };
 
-  // Save audit to Firestore (subcollection 'audits' under user document)
+  // Save audit to Firestore (subcollection 'audits')
   try {
     const userRef = db.collection('users').doc(userId);
     const auditRef = userRef.collection('audits').doc();
@@ -211,7 +207,7 @@ Be objective and helpful. If target keywords are provided, evaluate how well the
     });
   } catch (err) {
     console.error('Failed to save audit to Firestore:', err.message);
-    // Continue anyway – we still return the result to the user
+    // Continue anyway
   }
 
   res.status(200).json(finalResult);
