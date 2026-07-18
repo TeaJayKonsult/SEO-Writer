@@ -17,6 +17,103 @@ function getDaysUntilNextMonth(date) {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+// Helper: build system prompt based on contentType
+function buildSystemPrompt(body) {
+  const { contentType, primaryKeyword, secondaryKeywords, blogTitle, targetAudience, country, language, searchIntent, authorName, authorCredentials, length, tone, readingLevel, seoTitle, metaDescription, includeFaq, includeToc, includeTakeaways, eeatMode, humanizationMode, topic, audience, cta, hashtags, industry } = body;
+
+  // Common base for all types
+  let base = '';
+  if (contentType === 'blog') {
+    base = `You are an expert SEO content writer. Generate a high-quality, SEO-optimized blog article.
+
+Topic / Primary Keyword: ${primaryKeyword}
+Secondary Keywords: ${secondaryKeywords || 'None provided'}
+${blogTitle ? `Blog Title (user defined): ${blogTitle}` : 'Generate a compelling title based on the topic.'}
+Target Audience: ${targetAudience || 'General audience'}
+Country: ${country || 'Nigeria'}
+Language: ${language || 'English'}
+Search Intent: ${searchIntent || 'informational'}
+${authorName ? `Author: ${authorName}${authorCredentials ? ` (${authorCredentials})` : ''}` : ''}
+Reading Level: ${readingLevel || 'intermediate'}
+Writing Style: ${tone || 'professional'}
+Target Length: approximately ${length === 'short' ? 500 : length === 'medium' ? 1000 : 1800} words.
+
+${eeatMode ? `EEAT Mode ON: Emphasize Experience, Expertise, Authoritativeness, and Trustworthiness throughout the article. Include author credentials, real-world experience, and demonstrate deep knowledge of the subject. Use specific examples, case studies, and cite credible sources.` : ''}
+
+${humanizationMode ? `Humanization Mode ON: Write in a natural, conversational tone. Avoid robotic language. Use contractions, rhetorical questions, relatable anecdotes, and a warm, engaging voice. Write like a human expert talking to another human.` : ''}
+
+${blogTitle ? `Use this exact title: ${blogTitle}` : 'Generate a compelling, SEO-friendly title.'}
+
+${seoTitle ? `Use this exact SEO title: ${seoTitle}` : 'Generate an SEO-optimized title under 60 characters.'}
+
+${metaDescription ? `Use this exact meta description: ${metaDescription}` : 'Generate a compelling meta description under 160 characters.'}
+
+IMPORTANT: You must return a JSON object with EXACTLY the following structure:
+{
+  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, <li>, etc.)",
+  "metaTitle": "SEO title (under 60 characters)",
+  "metaDescription": "Meta description (under 160 characters)",
+  "suggestedTags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "seoScore": 85,
+  "readabilityScore": 70,
+  ${includeFaq ? `"faqSection": [{"question": "Question 1", "answer": "Answer 1"}, {"question": "Question 2", "answer": "Answer 2"}]` : `"faqSection": []`},
+  ${includeToc ? `"tableOfContents": ["Heading 1", "Heading 2", "Heading 3", "Heading 4"]` : `"tableOfContents": []`},
+  ${includeTakeaways ? `"keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]` : `"keyTakeaways": []`}
+}`;
+
+  } else if (contentType === 'facebook') {
+    base = `You are an expert social media copywriter specializing in Facebook posts. Write a highly engaging Facebook post.
+
+Topic / Hook: ${topic}
+${audience ? `Target Audience: ${audience}` : ''}
+${cta ? `Call to Action: ${cta}` : ''}
+${hashtags ? `Hashtags to include: ${hashtags}` : ''}
+Style: ${tone || 'engaging'}
+Length: ${length || 'medium'} (short = under 100 chars, medium = 100-300 chars, long = 300-500 chars)
+
+Write a compelling Facebook post that grabs attention, provides value, and encourages engagement (comments, shares, likes). Use emojis, short paragraphs, and a clear call to action.
+
+Return a JSON object with:
+{
+  "article": "The Facebook post content (HTML formatted, with <p> tags for paragraphs, <br> for line breaks, and emojis as text)",
+  "metaTitle": "A short headline/summary for the post (under 60 chars)",
+  "metaDescription": "A brief description (under 160 chars)",
+  "suggestedTags": ["tag1", "tag2", "tag3"],
+  "seoScore": 80,  // engagement potential score
+  "readabilityScore": 75,
+  "faqSection": [],
+  "tableOfContents": [],
+  "keyTakeaways": []
+}`;
+
+  } else if (contentType === 'linkedin') {
+    base = `You are an expert LinkedIn content creator specializing in professional thought leadership posts. Write a high-impact LinkedIn post.
+
+Topic / Headline: ${topic}
+${audience ? `Target Audience: ${audience}` : ''}
+${cta ? `Call to Action: ${cta}` : ''}
+${industry ? `Industry / Sector: ${industry}` : ''}
+Style: ${tone || 'professional'}
+Length: ${length || 'medium'} (short = under 100 chars, medium = 100-300 chars, long = 300-500 chars)
+
+Write a professional LinkedIn post that positions the author as a thought leader. Use clear, concise language, include insights or data points, and end with a thought-provoking question or call to action. Keep it professional but accessible.
+
+Return a JSON object with:
+{
+  "article": "The LinkedIn post content (HTML formatted, with <p> tags for paragraphs, <br> for line breaks, and any relevant formatting)",
+  "metaTitle": "A short headline for the post (under 60 chars)",
+  "metaDescription": "A brief description (under 160 chars)",
+  "suggestedTags": ["tag1", "tag2", "tag3"],
+  "seoScore": 80,  // engagement/authority score
+  "readabilityScore": 75,
+  "faqSection": [],
+  "tableOfContents": [],
+  "keyTakeaways": []
+}`;
+  }
+  return base;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -72,29 +169,8 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid JSON' });
   }
 
-  const {
-    primaryKeyword,
-    secondaryKeywords = '',
-    blogTitle = '',
-    targetAudience = '',
-    country = 'Nigeria',
-    language = 'English',
-    searchIntent = 'informational',
-    authorName = '',
-    authorCredentials = '',
-    length = 'medium',
-    tone = 'professional',
-    readingLevel = 'intermediate',
-    seoTitle = '',
-    metaDescription = '',
-    includeFaq = true,
-    includeToc = true,
-    includeTakeaways = true,
-    eeatMode = false,
-    humanizationMode = false
-  } = body;
-
-  if (!primaryKeyword) return res.status(400).json({ error: 'Primary keyword is required' });
+  const { contentType = 'blog' } = body;
+  if (!contentType) return res.status(400).json({ error: 'Content type is required' });
 
   // ====== USER USAGE TRACKING ======
   const userRef = db.collection('users').doc(userId);
@@ -136,54 +212,18 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // ====== MAP LENGTH TO WORD COUNT ======
-  let wordCount;
-  if (length === 'short') wordCount = 500;
-  else if (length === 'medium') wordCount = 1000;
-  else wordCount = 1800;
-
   // ====== BUILD SYSTEM PROMPT ======
-  let systemPrompt = `You are an expert SEO content writer with 10+ years of experience. Generate a high-quality, SEO-optimized article that ranks well and engages readers.
+  const systemPrompt = buildSystemPrompt(body);
 
-Topic / Primary Keyword: ${primaryKeyword}
-Secondary Keywords: ${secondaryKeywords || 'None provided'}
-${blogTitle ? `Blog Title (user defined): ${blogTitle}` : 'Generate a compelling title based on the topic.'}
-Target Audience: ${targetAudience || 'General audience'}
-Country: ${country}
-Language: ${language}
-Search Intent: ${searchIntent}
-${authorName ? `Author: ${authorName}${authorCredentials ? ` (${authorCredentials})` : ''}` : ''}
-Reading Level: ${readingLevel}
-Writing Style: ${tone}
-Target Length: approximately ${wordCount} words.
-
-${eeatMode ? `EEAT Mode ON: Emphasize Experience, Expertise, Authoritativeness, and Trustworthiness throughout the article. Include author credentials, real-world experience, and demonstrate deep knowledge of the subject. Use specific examples, case studies, and cite credible sources.` : ''}
-
-${humanizationMode ? `Humanization Mode ON: Write in a natural, conversational tone. Avoid robotic language. Use contractions, rhetorical questions, relatable anecdotes, and a warm, engaging voice. Write like a human expert talking to another human.` : ''}
-
-${blogTitle ? `Use this exact title: ${blogTitle}` : 'Generate a compelling, SEO-friendly title.'}
-
-${seoTitle ? `Use this exact SEO title: ${seoTitle}` : 'Generate an SEO-optimized title under 60 characters.'}
-
-${metaDescription ? `Use this exact meta description: ${metaDescription}` : 'Generate a compelling meta description under 160 characters.'}
-
-IMPORTANT: You must return a JSON object with EXACTLY the following structure:
-
-{
-  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, <li>, etc.)",
-  "metaTitle": "SEO title (under 60 characters)",
-  "metaDescription": "Meta description (under 160 characters)",
-  "suggestedTags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "seoScore": 85,
-  "readabilityScore": 70,
-  ${includeFaq ? `"faqSection": [{"question": "Question 1", "answer": "Answer 1"}, {"question": "Question 2", "answer": "Answer 2"}]` : `"faqSection": []`},
-  ${includeToc ? `"tableOfContents": ["Heading 1", "Heading 2", "Heading 3", "Heading 4"]` : `"tableOfContents": []`},
-  ${includeTakeaways ? `"keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]` : `"keyTakeaways": []`}
-}
-
-The SEO score should be 0-100 based on keyword usage, readability, and structure. The readability score should be 0-100 (higher is better).`;
-
-  const userPrompt = `Write a high-quality SEO article about "${primaryKeyword}" targeting ${targetAudience || 'general readers'} in ${country}. The content should be in ${language} and match ${searchIntent} search intent.`;
+  // ====== BUILD USER PROMPT ======
+  let userPrompt = '';
+  if (contentType === 'blog') {
+    userPrompt = `Write a high-quality SEO article about "${body.primaryKeyword}" targeting ${body.targetAudience || 'general readers'} in ${body.country || 'Nigeria'}. The content should be in ${body.language || 'English'} and match ${body.searchIntent || 'informational'} search intent.`;
+  } else if (contentType === 'facebook') {
+    userPrompt = `Write an engaging Facebook post about "${body.topic}".`;
+  } else if (contentType === 'linkedin') {
+    userPrompt = `Write a professional LinkedIn post about "${body.topic}".`;
+  }
 
   const groqApiKey = process.env.GROQ_API_KEY;
   if (!groqApiKey) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
@@ -229,9 +269,9 @@ The SEO score should be 0-100 based on keyword usage, readability, and structure
 
     // Ensure all fields exist
     const finalResult = {
-      article: result.article || '<p>Failed to generate article.</p>',
-      metaTitle: result.metaTitle || `${primaryKeyword} - SEO Writer`,
-      metaDescription: result.metaDescription || `Learn about ${primaryKeyword} with our SEO-optimized content.`,
+      article: result.article || '<p>Failed to generate content.</p>',
+      metaTitle: result.metaTitle || (body.primaryKeyword ? `${body.primaryKeyword} - SEOWriter Pro` : 'SEOWriter Pro'),
+      metaDescription: result.metaDescription || 'Generated content with SEOWriter Pro.',
       suggestedTags: Array.isArray(result.suggestedTags) ? result.suggestedTags : [],
       seoScore: typeof result.seoScore === 'number' ? result.seoScore : 70,
       readabilityScore: typeof result.readabilityScore === 'number' ? result.readabilityScore : 60,
@@ -240,13 +280,12 @@ The SEO score should be 0-100 based on keyword usage, readability, and structure
       keyTakeaways: Array.isArray(result.keyTakeaways) ? result.keyTakeaways : []
     };
 
-    // ====== SAVE GENERATION TO FIRESTORE ======
+    // ====== SAVE GENERATION ======
     const generationRef = userRef.collection('generations').doc();
+    const topic = body.primaryKeyword || body.topic || 'Untitled';
     await generationRef.set({
-      topic: primaryKeyword,
-      keywords: secondaryKeywords,
-      tone,
-      length,
+      topic: topic,
+      contentType: contentType,
       generatedAt: new Date().toISOString(),
       result: finalResult
     });
