@@ -79,8 +79,6 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Content is required' });
   }
 
-  // Optional: check if user is Pro? We'll allow all for now.
-
   const groqApiKey = process.env.GROQ_API_KEY;
   if (!groqApiKey) {
     return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
@@ -104,7 +102,7 @@ Be objective and helpful. If target keywords are provided, evaluate how well the
   const userPrompt = `Content to analyze:\n\n${content}\n\nTarget keywords: ${targetKeywords || 'none provided'}`;
 
   const payload = JSON.stringify({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b', // Updated to new model
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
