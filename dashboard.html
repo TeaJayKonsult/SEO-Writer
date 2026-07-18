@@ -52,8 +52,35 @@
       flex-direction: column;
       transition: transform 0.3s ease;
     }
-    .sidebar-header { padding: 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; }
-    .history-list { flex: 1; overflow-y: auto; padding: 16px; }
+    .sidebar-header {
+      padding: 20px 16px 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+    .sidebar-header .refresh-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #0d9488;
+      transition: transform 0.2s;
+    }
+    .sidebar-header .refresh-btn:hover { transform: rotate(180deg); }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      position: relative;
+    }
+    .history-list .loading-spinner {
+      text-align: center;
+      padding: 20px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
     .history-item {
       background: #f8fafc;
       border-radius: 12px;
@@ -66,6 +93,12 @@
     .history-item:hover { background: #f1f5f9; border-color: #0d9488; }
     .history-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .history-date { font-size: 11px; color: #64748b; margin-top: 4px; }
+    .history-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
     .main-content { flex: 1; padding: 24px; overflow-y: auto; }
     .user-info {
       background: white;
@@ -221,9 +254,12 @@
   </div>
   <div class="app-wrapper">
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">📜 Generation History</div>
+      <div class="sidebar-header">
+        📜 History
+        <button class="refresh-btn" id="refreshHistoryBtn" title="Refresh History">🔄</button>
+      </div>
       <div class="history-list" id="historyList">
-        <div style="text-align:center; padding:20px; color:#64748b;">Loading history...</div>
+        <div class="loading-spinner">Loading history...</div>
       </div>
     </div>
     <div class="main-content">
@@ -244,12 +280,11 @@
         <button class="tab-btn" data-tab="siteaudit">🌐 Site Audit</button>
       </div>
 
-      <!-- ====== GENERATE TAB ====== -->
+      <!-- GENERATE TAB -->
       <div id="generateTab" class="tab-content">
         <div class="form-card">
           <h2 style="margin-bottom:20px;">✍️ Generate SEO Article</h2>
 
-          <!-- Basic Information -->
           <div style="margin-bottom:24px;">
             <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">📋 Basic Information</h3>
             <div class="form-group">
@@ -318,7 +353,6 @@
 
           <hr class="section-divider">
 
-          <!-- Content Settings -->
           <div style="margin-bottom:24px;">
             <h3 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:16px;">⚙️ Content Settings</h3>
             <div class="form-row">
@@ -352,7 +386,6 @@
 
           <hr class="section-divider">
 
-          <!-- Advanced SEO Options -->
           <details>
             <summary>🔧 Advanced SEO Options</summary>
             <div style="margin-top:16px;">
@@ -387,7 +420,6 @@
           <div class="loading" id="loading">⏳ Generating... please wait (may take 15‑30 seconds)</div>
         </div>
 
-        <!-- Result Card -->
         <div class="result-card" id="resultCard" style="display:none;">
           <h2>📝 Generated Content</h2>
           <div class="meta-box">
@@ -399,19 +431,14 @@
           </div>
           <div id="articleContent"></div>
 
-          <!-- FAQ -->
           <div id="faqContainer" style="margin-top:20px; display:none;">
             <h3>❓ Frequently Asked Questions</h3>
             <div id="faqList"></div>
           </div>
-
-          <!-- TOC -->
           <div id="tocContainer" style="margin-top:20px; display:none;">
             <h3>📑 Table of Contents</h3>
             <ul id="tocList"></ul>
           </div>
-
-          <!-- Takeaways -->
           <div id="takeawaysContainer" style="margin-top:20px; display:none;">
             <h3>🎯 Key Takeaways</h3>
             <ul id="takeawaysList"></ul>
@@ -422,7 +449,7 @@
         </div>
       </div>
 
-      <!-- ====== ANALYZE TAB ====== -->
+      <!-- ANALYZE TAB -->
       <div id="analyzeTab" class="tab-content" style="display:none;">
         <div class="analyzer-card">
           <h2>🔍 SEO Content Analyzer</h2>
@@ -460,7 +487,7 @@
         </div>
       </div>
 
-      <!-- ====== SITE AUDIT TAB (RESTORED) ====== -->
+      <!-- SITE AUDIT TAB -->
       <div id="siteauditTab" class="tab-content" style="display:none;">
         <div class="analyzer-card">
           <h2>🌐 Website SEO Audit</h2>
@@ -490,7 +517,6 @@
             <div><strong>Keyword Density:</strong> <span id="auditKeywordDensity"></span>%</div>
             <div><strong>Headings:</strong> H1: <span id="auditH1">0</span>, H2: <span id="auditH2">0</span>, H3: <span id="auditH3">0</span></div>
           </div>
-          <!-- Tip Box -->
           <div id="auditTipBox" class="tip-box" style="display:none;"></div>
           <h3>💡 AI Suggestions</h3>
           <ul class="suggestions-list" id="auditSuggestions"></ul>
@@ -531,6 +557,27 @@
     let currentGenerations = [];
     let currentAuditResult = null;
 
+    // ====== ESCAPE HTML ======
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    // ====== TOAST ======
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(0,212,255,0.2);';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // ====== AUTH STATE ======
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         currentUser = user;
@@ -557,49 +604,82 @@
       }
     });
 
+    // ====== LOAD HISTORY (FIXED) ======
     async function loadHistory() {
       if (!currentUser) return;
       const historyDiv = document.getElementById('historyList');
+      // Show loading state
+      historyDiv.innerHTML = '<div class="loading-spinner">Loading history...</div>';
       try {
+        console.log('📜 Loading history for user:', currentUser.uid);
         const genSnapshot = await db.collection('users').doc(currentUser.uid).collection('generations')
           .orderBy('generatedAt', 'desc').get();
         const auditSnapshot = await db.collection('users').doc(currentUser.uid).collection('audits')
           .orderBy('auditedAt', 'desc').get();
         let items = [];
         genSnapshot.forEach(doc => {
-          items.push({ type: 'generation', id: doc.id, data: doc.data(), date: doc.data().generatedAt });
+          const data = doc.data();
+          items.push({
+            type: 'generation',
+            id: doc.id,
+            data: data,
+            date: data.generatedAt || data.createdAt || new Date().toISOString()
+          });
         });
         auditSnapshot.forEach(doc => {
-          items.push({ type: 'audit', id: doc.id, data: doc.data(), date: doc.data().auditedAt });
+          const data = doc.data();
+          items.push({
+            type: 'audit',
+            id: doc.id,
+            data: data,
+            date: data.auditedAt || data.createdAt || new Date().toISOString()
+          });
         });
-        items.sort((a,b) => new Date(b.date) - new Date(a.date));
+        console.log('📊 Found items:', items.length);
         if (items.length === 0) {
-          historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No history yet.</div>';
+          historyDiv.innerHTML = '<div class="history-empty">No history yet. Generate an article or run an audit!</div>';
           return;
         }
-        historyDiv.innerHTML = items.map(item => `
-          <div class="history-item" data-type="${item.type}" data-id="${item.id}">
-            <div class="history-title">${item.type === 'generation' ? '📄 ' + escapeHtml(item.data.topic.substring(0, 50)) : '🌐 ' + escapeHtml(item.data.url.substring(0, 50))}</div>
-            <div class="history-date">${new Date(item.date).toLocaleString()}</div>
-          </div>
-        `).join('');
+        items.sort((a, b) => new Date(b.date) - new Date(a.date));
+        historyDiv.innerHTML = items.map(item => {
+          const title = item.type === 'generation'
+            ? (item.data.topic || 'Untitled Article')
+            : (item.data.url || 'Untitled Audit');
+          const emoji = item.type === 'generation' ? '📄' : '🌐';
+          return `
+            <div class="history-item" data-type="${item.type}" data-id="${item.id}">
+              <div class="history-title">${emoji} ${escapeHtml(title.substring(0, 50))}</div>
+              <div class="history-date">${new Date(item.date).toLocaleString()}</div>
+            </div>
+          `;
+        }).join('');
+        // Attach click events
         document.querySelectorAll('.history-item').forEach(el => {
           el.addEventListener('click', () => {
             const type = el.getAttribute('data-type');
             const id = el.getAttribute('data-id');
             const item = items.find(i => i.id === id);
-            if (type === 'generation') displayGeneration(item.data);
-            else displayAudit(item.data);
+            if (item) {
+              if (type === 'generation') {
+                displayGeneration(item.data);
+                // Switch to generate tab
+                document.querySelector('[data-tab="generate"]').click();
+              } else if (type === 'audit') {
+                displayAudit(item.data);
+                document.querySelector('[data-tab="siteaudit"]').click();
+              }
+            }
           });
         });
       } catch (err) {
         console.error('Failed to load history:', err);
-        historyDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Error loading history</div>';
+        historyDiv.innerHTML = `<div class="history-empty" style="color:#ef4444;">Error loading history: ${err.message}</div>`;
       }
     }
 
+    // ====== DISPLAY FUNCTIONS ======
     function displayGeneration(gen) {
-      const result = gen.result;
+      const result = gen.result || {};
       document.getElementById('metaTitle').textContent = result.metaTitle || 'N/A';
       document.getElementById('metaDesc').textContent = result.metaDescription || 'N/A';
       document.getElementById('seoScore').textContent = result.seoScore || 'N/A';
@@ -608,6 +688,8 @@
       document.getElementById('articleContent').innerHTML = result.article || '<p>No content available.</p>';
       if (result.readabilityScore) {
         document.getElementById('readabilityScore').textContent = `📖 Readability Score: ${result.readabilityScore}`;
+      } else {
+        document.getElementById('readabilityScore').textContent = '';
       }
       displayAdvancedSections(result);
       document.getElementById('resultCard').style.display = 'block';
@@ -615,6 +697,7 @@
     }
 
     function displayAdvancedSections(result) {
+      // FAQ
       const faqContainer = document.getElementById('faqContainer');
       const faqList = document.getElementById('faqList');
       if (result.faqSection && result.faqSection.length > 0) {
@@ -646,13 +729,13 @@
       document.getElementById('auditPageTitle').textContent = auditData.pageTitle || 'N/A';
       document.getElementById('auditMetaDesc').textContent = auditData.metaDescription || 'N/A';
       document.getElementById('auditCanonical').textContent = auditData.canonical || 'N/A';
-      document.getElementById('auditWordCount').textContent = auditData.wordCount;
-      document.getElementById('auditMissingAlt').textContent = auditData.missingAltCount;
-      document.getElementById('auditInternalLinks').textContent = auditData.internalLinks;
-      document.getElementById('auditExternalLinks').textContent = auditData.externalLinks;
-      document.getElementById('auditSeoScore').textContent = auditData.seoScore;
-      document.getElementById('auditReadability').textContent = auditData.readability;
-      document.getElementById('auditKeywordDensity').textContent = auditData.keywordDensity;
+      document.getElementById('auditWordCount').textContent = auditData.wordCount || 0;
+      document.getElementById('auditMissingAlt').textContent = auditData.missingAltCount || 0;
+      document.getElementById('auditInternalLinks').textContent = auditData.internalLinks || 0;
+      document.getElementById('auditExternalLinks').textContent = auditData.externalLinks || 0;
+      document.getElementById('auditSeoScore').textContent = auditData.seoScore || 'N/A';
+      document.getElementById('auditReadability').textContent = auditData.readability || 'N/A';
+      document.getElementById('auditKeywordDensity').textContent = auditData.keywordDensity || 'N/A';
       document.getElementById('auditH1').textContent = auditData.headings?.h1 || 0;
       document.getElementById('auditH2').textContent = auditData.headings?.h2 || 0;
       document.getElementById('auditH3').textContent = auditData.headings?.h3 || 0;
@@ -680,11 +763,13 @@
       currentAuditResult = auditData;
     }
 
+    // ====== LOGOUT ======
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await auth.signOut();
       window.location.href = '/index.html';
     });
 
+    // ====== UPGRADE ======
     document.getElementById('upgradeBtn').addEventListener('click', () => {
       if (!currentUser) return;
       const paystack = new PaystackPop();
@@ -759,6 +844,7 @@
         }
         displayAdvancedSections(data);
         resultCard.style.display = 'block';
+        // Reload history after generation
         loadHistory();
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         if (userDoc.exists) {
@@ -838,13 +924,13 @@
         document.getElementById('auditPageTitle').textContent = data.pageTitle || 'N/A';
         document.getElementById('auditMetaDesc').textContent = data.metaDescription || 'N/A';
         document.getElementById('auditCanonical').textContent = data.canonical || 'N/A';
-        document.getElementById('auditWordCount').textContent = data.wordCount;
-        document.getElementById('auditMissingAlt').textContent = data.missingAltCount;
-        document.getElementById('auditInternalLinks').textContent = data.internalLinks;
-        document.getElementById('auditExternalLinks').textContent = data.externalLinks;
-        document.getElementById('auditSeoScore').textContent = data.seoScore;
-        document.getElementById('auditReadability').textContent = data.readability;
-        document.getElementById('auditKeywordDensity').textContent = data.keywordDensity;
+        document.getElementById('auditWordCount').textContent = data.wordCount || 0;
+        document.getElementById('auditMissingAlt').textContent = data.missingAltCount || 0;
+        document.getElementById('auditInternalLinks').textContent = data.internalLinks || 0;
+        document.getElementById('auditExternalLinks').textContent = data.externalLinks || 0;
+        document.getElementById('auditSeoScore').textContent = data.seoScore || 'N/A';
+        document.getElementById('auditReadability').textContent = data.readability || 'N/A';
+        document.getElementById('auditKeywordDensity').textContent = data.keywordDensity || 'N/A';
         document.getElementById('auditH1').textContent = data.headings?.h1 || 0;
         document.getElementById('auditH2').textContent = data.headings?.h2 || 0;
         document.getElementById('auditH3').textContent = data.headings?.h3 || 0;
@@ -870,9 +956,11 @@
         } else { tipBox.style.display = 'none'; }
         auditResultDiv.style.display = 'block';
         currentAuditResult = data;
+        // Save audit to Firestore
         await db.collection('users').doc(currentUser.uid).collection('audits').add({
           url, targetKeywords: keywords, auditedAt: new Date().toISOString(), ...data
         });
+        // Reload history
         loadHistory();
       } catch (err) {
         alert('Error: ' + err.message);
@@ -939,7 +1027,13 @@
       });
     });
 
-    // ====== SIDEBAR ======
+    // ====== REFRESH HISTORY BUTTON ======
+    document.getElementById('refreshHistoryBtn').addEventListener('click', () => {
+      loadHistory();
+      showToast('🔄 History refreshed');
+    });
+
+    // ====== SIDEBAR TOGGLE ======
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     menuToggle.addEventListener('click', () => {
@@ -969,15 +1063,6 @@
     });
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
     }
   </script>
 </body>
