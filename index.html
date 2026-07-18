@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEO Writer | AI Content Generator</title>
+  <title>SEO Writer Pro | AI-Powered SEO Content & AIEO Optimization</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="description" content="Generate SEO-optimized articles, meta tags, keyword suggestions, and get real‑time SEO scores.">
-  <!-- Firebase SDKs -->
+  <meta name="description" content="Generate SEO-optimized articles, AIEO-optimized content, meta tags, keyword suggestions, and get real‑time SEO scores with advanced EEAT and Humanization modes.">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -18,9 +17,9 @@
       color: #e2e8f0;
       min-height: 100vh;
     }
-    /* Header */
     .header {
-      background: #0f1628;
+      background: rgba(15, 22, 40, 0.8);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(0,212,255,0.2);
       padding: 20px 32px;
       display: flex;
@@ -28,6 +27,9 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .logo h1 {
       font-size: 24px;
@@ -54,6 +56,11 @@
       border-radius: 40px;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      border-color: #00d4ff;
+      background: rgba(0,212,255,0.1);
     }
     .btn-primary {
       background: linear-gradient(135deg, #0099bb, #00d4ff);
@@ -63,16 +70,22 @@
       border-radius: 40px;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s;
     }
-    /* Hero */
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0,212,255,0.3);
+    }
     .hero {
       padding: 80px 32px;
       text-align: center;
+      background: radial-gradient(circle at 20% 30%, rgba(0,212,255,0.06), transparent 70%);
     }
     .hero h1 {
       font-size: clamp(36px, 5vw, 56px);
       font-weight: 800;
       margin-bottom: 20px;
+      line-height: 1.2;
     }
     .hero h1 span {
       color: #00d4ff;
@@ -80,8 +93,25 @@
     .hero p {
       font-size: 18px;
       color: #94a3b8;
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+    .hero .features-highlight {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    .hero .features-highlight .pill {
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 40px;
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #00d4ff;
     }
     .cta-buttons {
       display: flex;
@@ -89,49 +119,82 @@
       justify-content: center;
       flex-wrap: wrap;
     }
-    /* Features */
     .features {
-      padding: 80px 32px;
-      background: #0f1628;
+      padding: 60px 32px;
+      background: rgba(15, 22, 40, 0.5);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(0,212,255,0.08);
+      border-bottom: 1px solid rgba(0,212,255,0.08);
     }
-    .section-title {
+    .features .section-title {
       text-align: center;
       font-size: 32px;
       font-weight: 800;
       margin-bottom: 48px;
     }
-    .section-title span {
+    .features .section-title span {
       color: #00d4ff;
     }
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
       max-width: 1200px;
       margin: 0 auto;
     }
     .feature-card {
-      background: #141d35;
+      background: rgba(20, 29, 53, 0.5);
+      border: 1px solid rgba(0,212,255,0.12);
+      border-radius: 20px;
       padding: 28px;
-      border-radius: 24px;
-      border: 1px solid rgba(0,212,255,0.15);
       text-align: center;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .feature-card:hover {
+      border-color: rgba(0,212,255,0.3);
+      transform: translateY(-4px);
     }
     .feature-icon {
-      font-size: 40px;
-      margin-bottom: 16px;
+      font-size: 38px;
+      margin-bottom: 14px;
     }
     .feature-card h3 {
-      font-size: 20px;
-      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #fff;
     }
     .feature-card p {
+      font-size: 14px;
       color: #94a3b8;
+      line-height: 1.6;
     }
-    /* Pricing */
+    .feature-card .tag {
+      display: inline-block;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.15);
+      color: #00d4ff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 12px;
+      border-radius: 40px;
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
     .pricing {
-      padding: 80px 32px;
-      background: #0a0e1a;
+      padding: 60px 32px;
+      background: rgba(0,0,0,0.2);
+    }
+    .pricing .section-title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 48px;
+    }
+    .pricing .section-title span {
+      color: #00d4ff;
     }
     .pricing-grid {
       display: grid;
@@ -141,11 +204,12 @@
       margin: 0 auto;
     }
     .pricing-card {
-      background: #141d35;
-      border-radius: 28px;
+      background: rgba(20, 29, 53, 0.6);
+      border-radius: 24px;
       padding: 32px;
       text-align: center;
-      border: 1px solid rgba(0,212,255,0.15);
+      border: 1px solid rgba(0,212,255,0.12);
+      backdrop-filter: blur(4px);
     }
     .pricing-card.popular {
       border: 2px solid #00d4ff;
@@ -184,6 +248,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      font-size: 14px;
+      color: #cbd5e1;
     }
     .pricing-card li::before {
       content: "✓";
@@ -202,14 +268,15 @@
       margin-top: 16px;
     }
     .footer {
-      background: #0f1628;
+      background: rgba(15, 22, 40, 0.8);
       text-align: center;
       padding: 32px;
       font-size: 12px;
       color: #64748b;
       border-top: 1px solid rgba(0,212,255,0.1);
     }
-    /* Auth Modal */
+
+    /* AUTH MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -224,13 +291,15 @@
       align-items: center;
     }
     .modal-content {
-      background: #0f1628;
+      background: rgba(15, 22, 40, 0.95);
+      backdrop-filter: blur(16px);
       max-width: 420px;
       width: 90%;
       padding: 32px;
       border-radius: 32px;
-      border: 1px solid rgba(0,212,255,0.3);
+      border: 1px solid rgba(0,212,255,0.2);
       position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
     .close-modal {
       position: absolute;
@@ -239,10 +308,16 @@
       font-size: 24px;
       cursor: pointer;
       color: #94a3b8;
+      transition: color 0.2s;
+    }
+    .close-modal:hover {
+      color: #fff;
     }
     .modal h2 {
       margin-bottom: 20px;
       text-align: center;
+      color: #fff;
+      font-weight: 700;
     }
     .modal .tab {
       display: flex;
@@ -258,6 +333,8 @@
       font-weight: 600;
       cursor: pointer;
       color: #94a3b8;
+      font-size: 14px;
+      transition: all 0.2s;
     }
     .modal .tab button.active {
       color: #00d4ff;
@@ -268,12 +345,41 @@
     }
     .modal input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 14px;
       border: 1.5px solid #2d3a5e;
       border-radius: 16px;
-      background: #141d35;
+      background: rgba(20,29,53,0.7);
       color: #fff;
       font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal input:focus {
+      border-color: #00d4ff;
+    }
+    .modal input::placeholder {
+      color: #64748b;
+    }
+    .modal .password-wrapper {
+      position: relative;
+    }
+    .modal .password-wrapper input {
+      padding-right: 40px;
+    }
+    .modal .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 18px;
+      transition: color 0.2s;
+    }
+    .modal .password-toggle:hover {
+      color: #fff;
     }
     .modal button[type="submit"] {
       width: 100%;
@@ -284,28 +390,76 @@
       border-radius: 40px;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s;
+      font-size: 15px;
+    }
+    .modal button[type="submit"]:hover {
+      transform: translateY(-2px);
     }
     .message {
       margin-top: 12px;
       font-size: 13px;
       text-align: center;
     }
-    .error {
+    .message.error {
       color: #ff4757;
+    }
+    .message.success {
+      color: #2ed573;
     }
     .hidden {
       display: none;
     }
+    .social-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .social-divider::before,
+    .social-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2d3a5e;
+    }
+    .social-divider span {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .google-btn {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #2d3a5e;
+      border-radius: 40px;
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .google-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: #00d4ff;
+    }
     @media (max-width: 768px) {
-      .header { flex-direction: column; text-align: center; }
-      .hero { padding: 60px 20px; }
+      .header { flex-direction: column; text-align: center; padding: 16px; }
+      .hero { padding: 40px 20px; }
+      .features { padding: 40px 20px; }
+      .hero .features-highlight .pill { font-size: 11px; padding: 4px 12px; }
     }
   </style>
 </head>
 <body>
+
   <div class="header">
     <div class="logo">
-      <h1>📄 SEO<span>Writer</span></h1>
+      <h1>📄 SEO<span>Writer Pro</span></h1>
       <p>by TeaJay Konsult</p>
     </div>
     <div class="nav-buttons">
@@ -315,46 +469,80 @@
   </div>
 
   <div class="hero">
-    <h1>Write Better Content.<br>Rank <span>Higher</span> on Google.</h1>
-    <p>Generate SEO-optimized articles, meta tags, keyword suggestions, and get real‑time SEO scores.</p>
+    <h1>Write Content That <span>Ranks</span> – On Google & AI Search</h1>
+    <p>Generate SEO-optimized articles with advanced AIEO optimization, EEAT enhancement, humanization, FAQ sections, and real-time SEO scores. Built for content marketers, agencies, and bloggers.</p>
+    <div class="features-highlight">
+      <span class="pill">🚀 AIEO-Optimized</span>
+      <span class="pill">🧠 EEAT Enhanced</span>
+      <span class="pill">💬 Humanization Mode</span>
+      <span class="pill">📊 Real-time SEO Score</span>
+      <span class="pill">❓ Auto FAQ Generator</span>
+      <span class="pill">📑 Table of Contents</span>
+      <span class="pill">🎯 Key Takeaways</span>
+      <span class="pill">🔍 Site Audit</span>
+    </div>
     <div class="cta-buttons">
-      <button class="btn-primary" id="heroSignupBtn">Start Free →</button>
+      <button class="btn-primary" id="heroSignupBtn" style="padding:14px 32px; font-size:16px;">Start Free →</button>
       <button class="btn-outline" id="heroSigninBtn">Sign In</button>
     </div>
   </div>
 
   <div class="features">
-    <h2 class="section-title">Powerful <span>Features</span></h2>
+    <h2 class="section-title">Why <span>SEO Writer Pro</span>?</h2>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🤖</div>
-        <h3>AI Article Generation</h3>
-        <p>Generate high-quality, unique articles in seconds. Choose tone, length, and target keywords.</p>
+        <h3>AI-Powered Content</h3>
+        <p>Generate high-quality, unique articles in seconds with advanced AI models optimized for SEO and AIEO.</p>
+        <span class="tag">GPT-OSS 120B</span>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📊</div>
-        <h3>SEO Score & Analysis</h3>
-        <p>Get instant SEO scores with actionable suggestions to improve your content.</p>
+        <h3>Real-time SEO Score</h3>
+        <p>Get instant SEO scores with actionable suggestions to improve readability, keyword density, and structure.</p>
+        <span class="tag">Readability Analysis</span>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🏷️</div>
-        <h3>Meta Tags & Keywords</h3>
-        <p>Automatically generate meta titles, descriptions, and related keywords for any article.</p>
+        <div class="feature-icon">🧠</div>
+        <h3>EEAT Enhancement</h3>
+        <p>Boost Experience, Expertise, Authoritativeness, and Trustworthiness signals – essential for Google's quality guidelines.</p>
+        <span class="tag">Trust Signals</span>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📋</div>
-        <h3>Copy as HTML or Markdown</h3>
-        <p>Copy your content with one click – rich HTML for blogs, Markdown for social media.</p>
+        <div class="feature-icon">💬</div>
+        <h3>Humanization Mode</h3>
+        <p>Make your content sound natural, conversational, and engaging – not robotic. Connect with your readers.</p>
+        <span class="tag">Natural Language</span>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📜</div>
-        <h3>Content History</h3>
-        <p>All your generated articles are saved. Access them anytime from your dashboard.</p>
+        <div class="feature-icon">❓</div>
+        <h3>Auto FAQ Generator</h3>
+        <p>Automatically generate 3-5 FAQs with answers based on your topic – boost engagement and SEO.</p>
+        <span class="tag">FAQ Schema Ready</span>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Privacy First</h3>
-        <p>Your data is secure. We never sell or share your content.</p>
+        <div class="feature-icon">📑</div>
+        <h3>Table of Contents</h3>
+        <p>Generate a structured table of contents for your articles – improves readability and user experience.</p>
+        <span class="tag">UX Boost</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Key Takeaways</h3>
+        <p>Summarize the most important points of your article with a key takeaways section – perfect for skimmers.</p>
+        <span class="tag">Quick Summary</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>Site Audit</h3>
+        <p>Analyze any live URL for on‑page SEO, meta tags, headings, alt text, readability, and get actionable advice.</p>
+        <span class="tag">Technical SEO</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <h3>Multi-Country & Language</h3>
+        <p>Target specific countries and languages – create content that resonates with your global audience.</p>
+        <span class="tag">Localize</span>
       </div>
     </div>
   </div>
@@ -367,7 +555,8 @@
         <div class="price">₦0<span>/month</span></div>
         <ul>
           <li>8 article generations/month</li>
-          <li>Basic SEO score</li>
+          <li>Basic SEO score + readability</li>
+          <li>Site audit (5/month)</li>
           <li>30‑day history</li>
           <li>Email support</li>
         </ul>
@@ -379,8 +568,10 @@
         <div class="price">₦1,500<span>/month</span></div>
         <ul>
           <li>25 article generations/month</li>
-          <li>Advanced SEO analysis</li>
-          <li>Meta tags & keyword planner</li>
+          <li>Advanced SEO analysis + EEAT</li>
+          <li>FAQ, TOC, Key Takeaways</li>
+          <li>Humanization Mode</li>
+          <li>Unlimited site audit</li>
           <li>Priority support</li>
         </ul>
         <button class="btn-pricing proSignupBtn">Upgrade Now</button>
@@ -392,7 +583,7 @@
     <p>© 2026 TeaJay Konsult Ltd. All rights reserved. | Built with ❤️ by TeaJay Konsult</p>
   </div>
 
-  <!-- Auth Modal -->
+  <!-- ====== AUTH MODAL ====== -->
   <div id="authModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" id="closeModalBtn">&times;</span>
@@ -400,31 +591,53 @@
         <button id="modalSigninTab" class="active">Sign In</button>
         <button id="modalSignupTab">Sign Up</button>
       </div>
+      <!-- SIGN IN -->
       <form id="modalSigninForm">
         <div class="form-group">
           <input type="email" id="modalSigninEmail" placeholder="Email" required>
         </div>
         <div class="form-group">
-          <input type="password" id="modalSigninPassword" placeholder="Password" required>
+          <div class="password-wrapper">
+            <input type="password" id="modalSigninPassword" placeholder="Password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('modalSigninPassword', this)">👁️</button>
+          </div>
+        </div>
+        <div class="form-group" style="text-align:right; margin-top:-10px;">
+          <a href="#" style="color: #00d4ff; font-size:12px; text-decoration:none;" onclick="event.preventDefault(); sendPasswordReset();">Forgot password?</a>
         </div>
         <button type="submit">Sign In</button>
         <div class="message" id="modalSigninMessage"></div>
       </form>
+      <!-- SIGN UP -->
       <form id="modalSignupForm" class="hidden">
         <div class="form-group">
           <input type="email" id="modalSignupEmail" placeholder="Email" required>
         </div>
         <div class="form-group">
-          <input type="password" id="modalSignupPassword" placeholder="Password (min. 6 characters)" required>
+          <div class="password-wrapper">
+            <input type="password" id="modalSignupPassword" placeholder="Password (min. 6 characters)" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('modalSignupPassword', this)">👁️</button>
+          </div>
         </div>
         <button type="submit">Create Account</button>
         <div class="message" id="modalSignupMessage"></div>
       </form>
+      <!-- GOOGLE SIGN-IN -->
+      <div class="social-divider"><span>or continue with</span></div>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg style="width:20px;height:20px;" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+          <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+        </svg>
+        Sign in with Google
+      </button>
     </div>
   </div>
 
   <script>
-    // Firebase Config (your existing SEO Writer project)
+    // ====== FIREBASE CONFIG ======
     const firebaseConfig = {
       apiKey: "AIzaSyCf_Lq-52kCEADLb2xaZRudetLlC0L8ls8",
       authDomain: "seo-writer-teajay.firebaseapp.com",
@@ -436,8 +649,9 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // DOM elements
+    // ====== DOM REFS ======
     const authModal = document.getElementById('authModal');
     const signinTab = document.getElementById('modalSigninTab');
     const signupTab = document.getElementById('modalSignupTab');
@@ -450,6 +664,62 @@
     const signinMessage = document.getElementById('modalSigninMessage');
     const signupMessage = document.getElementById('modalSignupMessage');
 
+    // ====== PASSWORD TOGGLE ======
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+    window.togglePassword = togglePassword;
+
+    // ====== FORGOT PASSWORD ======
+    async function sendPasswordReset() {
+      const email = signinEmail.value.trim();
+      if (!email) {
+        showToast('Please enter your email address first.');
+        return;
+      }
+      try {
+        await auth.sendPasswordResetEmail(email);
+        showToast('✅ Password reset email sent. Check your inbox.');
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      }
+    }
+    window.sendPasswordReset = sendPasswordReset;
+
+    // ====== GOOGLE SIGN-IN ======
+    async function signInWithGoogle() {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        if (err.code === 'auth/popup-closed-by-user') {
+          showToast('⚠️ Sign-in cancelled.');
+        } else {
+          showToast('❌ Google Sign-In failed: ' + err.message);
+        }
+        console.error('Google Sign-In error:', err);
+      }
+    }
+    window.signInWithGoogle = signInWithGoogle;
+
+    // ====== TOAST ======
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;border-radius:40px;font-size:13px;z-index:9999;border:1px solid rgba(0,212,255,0.2);';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // ====== AUTH FUNCTIONS ======
     function openModal(showSignIn = true) {
       authModal.style.display = 'flex';
       if (showSignIn) {
@@ -465,31 +735,29 @@
       }
     }
 
-    // Open modal from buttons
-    document.getElementById('landingSigninBtn').onclick = () => openModal(true);
-    document.getElementById('landingSignupBtn').onclick = () => openModal(false);
-    document.getElementById('heroSigninBtn').onclick = () => openModal(true);
-    document.getElementById('heroSignupBtn').onclick = () => openModal(false);
-    document.querySelectorAll('.freeSignupBtn, .proSignupBtn').forEach(btn => {
-      btn.onclick = () => openModal(false);
-    });
-    document.getElementById('closeModalBtn').onclick = () => authModal.style.display = 'none';
-    window.onclick = (e) => { if (e.target === authModal) authModal.style.display = 'none'; };
+    document.getElementById('landingSigninBtn').addEventListener('click', () => openModal(true));
+    document.getElementById('landingSignupBtn').addEventListener('click', () => openModal(false));
+    document.getElementById('heroSigninBtn').addEventListener('click', () => openModal(true));
+    document.getElementById('heroSignupBtn').addEventListener('click', () => openModal(false));
+    document.querySelectorAll('.freeSignupBtn').forEach(btn => btn.addEventListener('click', () => openModal(false)));
+    document.querySelectorAll('.proSignupBtn').forEach(btn => btn.addEventListener('click', () => openModal(false)));
+    document.getElementById('closeModalBtn').addEventListener('click', () => authModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === authModal) authModal.style.display = 'none'; });
 
-    signinTab.onclick = () => {
+    signinTab.addEventListener('click', () => {
       signinTab.classList.add('active');
       signupTab.classList.remove('active');
       signinForm.classList.remove('hidden');
       signupForm.classList.add('hidden');
-    };
-    signupTab.onclick = () => {
+    });
+    signupTab.addEventListener('click', () => {
       signupTab.classList.add('active');
       signinTab.classList.remove('active');
       signupForm.classList.remove('hidden');
       signinForm.classList.add('hidden');
-    };
+    });
 
-    signinForm.onsubmit = async (e) => {
+    signinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       signinMessage.textContent = '';
       const email = signinEmail.value.trim();
@@ -501,9 +769,9 @@
         signinMessage.textContent = err.message;
         signinMessage.classList.add('error');
       }
-    };
+    });
 
-    signupForm.onsubmit = async (e) => {
+    signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       signupMessage.textContent = '';
       const email = signupEmail.value.trim();
@@ -514,10 +782,8 @@
         return;
       }
       try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        // Create a user document in Firestore with default free plan
-        const db = firebase.firestore();
-        await db.collection('users').doc(userCredential.user.uid).set({
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection('users').doc(userCred.user.uid).set({
           email: email,
           plan: 'free',
           generationsUsedThisMonth: 0,
@@ -529,7 +795,14 @@
         signupMessage.textContent = err.message;
         signupMessage.classList.add('error');
       }
-    };
+    });
+
+    // Check if user is already signed in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = '/dashboard.html';
+      }
+    });
   </script>
 </body>
 </html>
