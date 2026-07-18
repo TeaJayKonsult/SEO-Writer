@@ -10,20 +10,18 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Helper: get days remaining until next month
 function getDaysUntilNextMonth(date) {
   const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
   const diff = nextMonth - date;
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-// Helper: build system prompt based on contentType
 function buildSystemPrompt(body) {
   const { contentType, primaryKeyword, secondaryKeywords, blogTitle, targetAudience, country, language, searchIntent, authorName, authorCredentials, length, tone, readingLevel, seoTitle, metaDescription, includeFaq, includeToc, includeTakeaways, eeatMode, humanizationMode, topic, audience, cta, hashtags, industry } = body;
 
-  // Common base for all types
   let base = '';
   if (contentType === 'blog') {
+    const wordCount = length === 'short' ? 700 : length === 'medium' ? 1150 : 1600;
     base = `You are an expert SEO content writer. Generate a high-quality, SEO-optimized blog article.
 
 Topic / Primary Keyword: ${primaryKeyword}
@@ -36,32 +34,30 @@ Search Intent: ${searchIntent || 'informational'}
 ${authorName ? `Author: ${authorName}${authorCredentials ? ` (${authorCredentials})` : ''}` : ''}
 Reading Level: ${readingLevel || 'intermediate'}
 Writing Style: ${tone || 'professional'}
-Target Length: approximately ${length === 'short' ? 500 : length === 'medium' ? 1000 : 1800} words.
+Target Length: approximately ${wordCount} words.
 
-${eeatMode ? `EEAT Mode ON: Emphasize Experience, Expertise, Authoritativeness, and Trustworthiness throughout the article. Include author credentials, real-world experience, and demonstrate deep knowledge of the subject. Use specific examples, case studies, and cite credible sources.` : ''}
-
-${humanizationMode ? `Humanization Mode ON: Write in a natural, conversational tone. Avoid robotic language. Use contractions, rhetorical questions, relatable anecdotes, and a warm, engaging voice. Write like a human expert talking to another human.` : ''}
+${eeatMode ? `EEAT Mode ON: Emphasize Experience, Expertise, Authoritativeness, and Trustworthiness throughout the article.` : ''}
+${humanizationMode ? `Humanization Mode ON: Write in a natural, conversational tone. Avoid robotic language.` : ''}
 
 ${blogTitle ? `Use this exact title: ${blogTitle}` : 'Generate a compelling, SEO-friendly title.'}
-
 ${seoTitle ? `Use this exact SEO title: ${seoTitle}` : 'Generate an SEO-optimized title under 60 characters.'}
-
 ${metaDescription ? `Use this exact meta description: ${metaDescription}` : 'Generate a compelling meta description under 160 characters.'}
 
-IMPORTANT: You must return a JSON object with EXACTLY the following structure:
+IMPORTANT: Return JSON with:
 {
-  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, <li>, etc.)",
-  "metaTitle": "SEO title (under 60 characters)",
-  "metaDescription": "Meta description (under 160 characters)",
+  "article": "Full HTML article content",
+  "metaTitle": "SEO title",
+  "metaDescription": "Meta description",
   "suggestedTags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "seoScore": 85,
   "readabilityScore": 70,
-  ${includeFaq ? `"faqSection": [{"question": "Question 1", "answer": "Answer 1"}, {"question": "Question 2", "answer": "Answer 2"}]` : `"faqSection": []`},
-  ${includeToc ? `"tableOfContents": ["Heading 1", "Heading 2", "Heading 3", "Heading 4"]` : `"tableOfContents": []`},
-  ${includeTakeaways ? `"keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]` : `"keyTakeaways": []`}
+  ${includeFaq ? `"faqSection": [{"question": "Q1", "answer": "A1"}]` : `"faqSection": []`},
+  ${includeToc ? `"tableOfContents": ["Heading 1", "Heading 2"]` : `"tableOfContents": []`},
+  ${includeTakeaways ? `"keyTakeaways": ["Takeaway 1", "Takeaway 2"]` : `"keyTakeaways": []`}
 }`;
 
   } else if (contentType === 'facebook') {
+    const wordCount = length === 'short' ? 600 : length === 'medium' ? 1000 : 1400;
     base = `You are an expert social media copywriter specializing in Facebook posts. Write a highly engaging Facebook post.
 
 Topic / Hook: ${topic}
@@ -69,17 +65,17 @@ ${audience ? `Target Audience: ${audience}` : ''}
 ${cta ? `Call to Action: ${cta}` : ''}
 ${hashtags ? `Hashtags to include: ${hashtags}` : ''}
 Style: ${tone || 'engaging'}
-Length: ${length || 'medium'} (short = under 100 chars, medium = 100-300 chars, long = 300-500 chars)
+Target Length: approximately ${wordCount} words.
 
-Write a compelling Facebook post that grabs attention, provides value, and encourages engagement (comments, shares, likes). Use emojis, short paragraphs, and a clear call to action.
+Write a compelling Facebook post that grabs attention, provides value, and encourages engagement.
 
-Return a JSON object with:
+Return JSON:
 {
-  "article": "The Facebook post content (HTML formatted, with <p> tags for paragraphs, <br> for line breaks, and emojis as text)",
-  "metaTitle": "A short headline/summary for the post (under 60 chars)",
-  "metaDescription": "A brief description (under 160 chars)",
+  "article": "Facebook post content (HTML formatted)",
+  "metaTitle": "Headline (under 60 chars)",
+  "metaDescription": "Brief description (under 160 chars)",
   "suggestedTags": ["tag1", "tag2", "tag3"],
-  "seoScore": 80,  // engagement potential score
+  "seoScore": 80,
   "readabilityScore": 75,
   "faqSection": [],
   "tableOfContents": [],
@@ -87,6 +83,7 @@ Return a JSON object with:
 }`;
 
   } else if (contentType === 'linkedin') {
+    const wordCount = length === 'short' ? 600 : length === 'medium' ? 1000 : 1600;
     base = `You are an expert LinkedIn content creator specializing in professional thought leadership posts. Write a high-impact LinkedIn post.
 
 Topic / Headline: ${topic}
@@ -94,17 +91,17 @@ ${audience ? `Target Audience: ${audience}` : ''}
 ${cta ? `Call to Action: ${cta}` : ''}
 ${industry ? `Industry / Sector: ${industry}` : ''}
 Style: ${tone || 'professional'}
-Length: ${length || 'medium'} (short = under 100 chars, medium = 100-300 chars, long = 300-500 chars)
+Target Length: approximately ${wordCount} words.
 
-Write a professional LinkedIn post that positions the author as a thought leader. Use clear, concise language, include insights or data points, and end with a thought-provoking question or call to action. Keep it professional but accessible.
+Write a professional LinkedIn post that positions the author as a thought leader.
 
-Return a JSON object with:
+Return JSON:
 {
-  "article": "The LinkedIn post content (HTML formatted, with <p> tags for paragraphs, <br> for line breaks, and any relevant formatting)",
-  "metaTitle": "A short headline for the post (under 60 chars)",
-  "metaDescription": "A brief description (under 160 chars)",
+  "article": "LinkedIn post content (HTML formatted)",
+  "metaTitle": "Headline (under 60 chars)",
+  "metaDescription": "Brief description (under 160 chars)",
   "suggestedTags": ["tag1", "tag2", "tag3"],
-  "seoScore": 80,  // engagement/authority score
+  "seoScore": 80,
   "readabilityScore": 75,
   "faqSection": [],
   "tableOfContents": [],
@@ -121,7 +118,6 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // ====== VERIFY FIREBASE TOKEN ======
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing authorization token' });
@@ -161,7 +157,6 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // ====== PARSE REQUEST BODY ======
   let body;
   try {
     body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -172,7 +167,6 @@ module.exports = async function handler(req, res) {
   const { contentType = 'blog' } = body;
   if (!contentType) return res.status(400).json({ error: 'Content type is required' });
 
-  // ====== USER USAGE TRACKING ======
   const userRef = db.collection('users').doc(userId);
   const userDoc = await userRef.get();
   let userData = userDoc.exists ? userDoc.data() : null;
@@ -192,10 +186,7 @@ module.exports = async function handler(req, res) {
   const now = new Date();
 
   if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-    await userRef.update({
-      generationsUsedThisMonth: 0,
-      monthlyResetDate: now.toISOString()
-    });
+    await userRef.update({ generationsUsedThisMonth: 0, monthlyResetDate: now.toISOString() });
     userData.generationsUsedThisMonth = 0;
   }
 
@@ -212,13 +203,11 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // ====== BUILD SYSTEM PROMPT ======
   const systemPrompt = buildSystemPrompt(body);
 
-  // ====== BUILD USER PROMPT ======
   let userPrompt = '';
   if (contentType === 'blog') {
-    userPrompt = `Write a high-quality SEO article about "${body.primaryKeyword}" targeting ${body.targetAudience || 'general readers'} in ${body.country || 'Nigeria'}. The content should be in ${body.language || 'English'} and match ${body.searchIntent || 'informational'} search intent.`;
+    userPrompt = `Write a high-quality SEO article about "${body.primaryKeyword}" targeting ${body.targetAudience || 'general readers'} in ${body.country || 'Nigeria'}.`;
   } else if (contentType === 'facebook') {
     userPrompt = `Write an engaging Facebook post about "${body.topic}".`;
   } else if (contentType === 'linkedin') {
@@ -267,10 +256,9 @@ module.exports = async function handler(req, res) {
     const content = groqResponse.choices[0].message.content;
     const result = JSON.parse(content);
 
-    // Ensure all fields exist
     const finalResult = {
       article: result.article || '<p>Failed to generate content.</p>',
-      metaTitle: result.metaTitle || (body.primaryKeyword ? `${body.primaryKeyword} - SEOWriter Pro` : 'SEOWriter Pro'),
+      metaTitle: result.metaTitle || 'SEOWriter Pro',
       metaDescription: result.metaDescription || 'Generated content with SEOWriter Pro.',
       suggestedTags: Array.isArray(result.suggestedTags) ? result.suggestedTags : [],
       seoScore: typeof result.seoScore === 'number' ? result.seoScore : 70,
@@ -280,7 +268,6 @@ module.exports = async function handler(req, res) {
       keyTakeaways: Array.isArray(result.keyTakeaways) ? result.keyTakeaways : []
     };
 
-    // ====== SAVE GENERATION ======
     const generationRef = userRef.collection('generations').doc();
     const topic = body.primaryKeyword || body.topic || 'Untitled';
     await generationRef.set({
