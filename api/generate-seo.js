@@ -2,7 +2,6 @@
 const https = require('https');
 const admin = require('firebase-admin');
 
-// Initialize Firebase Admin SDK (if not already initialized)
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_JSON);
   admin.initializeApp({
@@ -11,26 +10,28 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
+// Helper: get days remaining until next month
+function getDaysUntilNextMonth(date) {
+  const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const diff = nextMonth - date;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
 module.exports = async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Get Firebase ID token from Authorization header
+  // ====== VERIFY FIREBASE TOKEN ======
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing authorization token' });
   }
   const idToken = authHeader.split('Bearer ')[1];
-
-  // Verify token with Firebase REST API
   const firebaseApiKey = process.env.FIREBASE_API_KEY;
-  if (!firebaseApiKey) {
-    return res.status(500).json({ error: 'FIREBASE_API_KEY not configured' });
-  }
+  if (!firebaseApiKey) return res.status(500).json({ error: 'FIREBASE_API_KEY missing' });
 
   let userId;
   try {
@@ -40,27 +41,18 @@ module.exports = async function handler(req, res) {
         hostname: 'identitytoolkit.googleapis.com',
         path: `/v1/accounts:lookup?key=${firebaseApiKey}`,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(verifyData)
-        }
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(verifyData) }
       };
       const request = https.request(options, (response) => {
         let raw = '';
         response.on('data', chunk => raw += chunk);
         response.on('end', () => {
-          if (response.statusCode !== 200) {
-            reject(new Error(`Token verification failed: ${response.statusCode}`));
-            return;
-          }
-          try {
+          if (response.statusCode !== 200) reject(new Error(`Token verification failed: ${response.statusCode}`));
+          else {
             const parsed = JSON.parse(raw);
-            if (parsed.users && parsed.users.length > 0) {
-              resolve(parsed.users[0]);
-            } else {
-              reject(new Error('No user found'));
-            }
-          } catch (e) { reject(e); }
+            if (parsed.users && parsed.users.length) resolve(parsed.users[0]);
+            else reject(new Error('No user found'));
+          }
         });
       });
       request.on('error', reject);
@@ -69,94 +61,141 @@ module.exports = async function handler(req, res) {
     });
     userId = verifyRes.localId;
   } catch (err) {
-    console.error('Token verification error:', err.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // Parse request body
+  // ====== PARSE REQUEST BODY ======
   let body;
   try {
     body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   } catch (e) {
     return res.status(400).json({ error: 'Invalid JSON' });
   }
-  const { topic, keywords, tone = 'professional', length = 'medium' } = body;
-  if (!topic || !keywords) {
-    return res.status(400).json({ error: 'Topic and keywords are required' });
-  }
 
-  // Get user's plan and usage from Firestore
+  const {
+    primaryKeyword,
+    secondaryKeywords = '',
+    blogTitle = '',
+    targetAudience = '',
+    country = 'Nigeria',
+    language = 'English',
+    searchIntent = 'informational',
+    authorName = '',
+    authorCredentials = '',
+    length = 'medium',
+    tone = 'professional',
+    readingLevel = 'intermediate',
+    seoTitle = '',
+    metaDescription = '',
+    includeFaq = true,
+    includeToc = true,
+    includeTakeaways = true,
+    eeatMode = false,
+    humanizationMode = false
+  } = body;
+
+  if (!primaryKeyword) return res.status(400).json({ error: 'Primary keyword is required' });
+
+  // ====== USER USAGE TRACKING ======
   const userRef = db.collection('users').doc(userId);
   const userDoc = await userRef.get();
   let userData = userDoc.exists ? userDoc.data() : null;
+
   if (!userData) {
-    // Create default user document
-    const now = new Date().toISOString();
+    const now = new Date();
     await userRef.set({
       plan: 'free',
       generationsUsedThisMonth: 0,
-      monthlyResetDate: now,
-      createdAt: now
+      monthlyResetDate: now.toISOString(),
+      createdAt: now.toISOString()
     });
-    userData = { plan: 'free', generationsUsedThisMonth: 0, monthlyResetDate: now };
+    userData = { plan: 'free', generationsUsedThisMonth: 0, monthlyResetDate: now.toISOString() };
   }
 
-  // Monthly reset logic
   const lastReset = new Date(userData.monthlyResetDate);
   const now = new Date();
+
   if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
     await userRef.update({
       generationsUsedThisMonth: 0,
       monthlyResetDate: now.toISOString()
     });
     userData.generationsUsedThisMonth = 0;
-    userData.monthlyResetDate = now.toISOString();
   }
 
   const limit = userData.plan === 'pro' ? 25 : 8;
+
   if (userData.generationsUsedThisMonth >= limit) {
-    return res.status(429).json({ error: `Monthly limit reached (${limit} generations). Upgrade to Pro for more.` });
+    const remainingDays = getDaysUntilNextMonth(now);
+    return res.status(429).json({
+      error: 'limit_reached',
+      message: `You've used all ${limit} free generations this month. Your limit resets in ${remainingDays} days.`,
+      remainingDays: remainingDays,
+      limit: limit,
+      used: userData.generationsUsedThisMonth
+    });
   }
 
-  // Map length to word count
+  // ====== MAP LENGTH TO WORD COUNT ======
   let wordCount;
   if (length === 'short') wordCount = 500;
   else if (length === 'medium') wordCount = 1000;
   else wordCount = 1800;
 
-  const systemPrompt = `You are an expert SEO content writer. Generate a high-quality, SEO-optimized article based on the user's input.
+  // ====== BUILD SYSTEM PROMPT ======
+  let systemPrompt = `You are an expert SEO content writer with 10+ years of experience. Generate a high-quality, SEO-optimized article that ranks well and engages readers.
 
-Topic: ${topic}
-Target keywords: ${keywords}
-Tone: ${tone}
-Target length: approximately ${wordCount} words.
+Topic / Primary Keyword: ${primaryKeyword}
+Secondary Keywords: ${secondaryKeywords || 'None provided'}
+${blogTitle ? `Blog Title (user defined): ${blogTitle}` : 'Generate a compelling title based on the topic.'}
+Target Audience: ${targetAudience || 'General audience'}
+Country: ${country}
+Language: ${language}
+Search Intent: ${searchIntent}
+${authorName ? `Author: ${authorName}${authorCredentials ? ` (${authorCredentials})` : ''}` : ''}
+Reading Level: ${readingLevel}
+Writing Style: ${tone}
+Target Length: approximately ${wordCount} words.
 
-Return a JSON object with the following structure:
+${eeatMode ? `EEAT Mode ON: Emphasize Experience, Expertise, Authoritativeness, and Trustworthiness throughout the article. Include author credentials, real-world experience, and demonstrate deep knowledge of the subject. Use specific examples, case studies, and cite credible sources.` : ''}
+
+${humanizationMode ? `Humanization Mode ON: Write in a natural, conversational tone. Avoid robotic language. Use contractions, rhetorical questions, relatable anecdotes, and a warm, engaging voice. Write like a human expert talking to another human.` : ''}
+
+${blogTitle ? `Use this exact title: ${blogTitle}` : 'Generate a compelling, SEO-friendly title.'}
+
+${seoTitle ? `Use this exact SEO title: ${seoTitle}` : 'Generate an SEO-optimized title under 60 characters.'}
+
+${metaDescription ? `Use this exact meta description: ${metaDescription}` : 'Generate a compelling meta description under 160 characters.'}
+
+IMPORTANT: You must return a JSON object with EXACTLY the following structure:
+
 {
-  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, etc.)",
-  "metaTitle": "SEO title under 60 characters",
-  "metaDescription": "Meta description under 160 characters",
-  "suggestedTags": ["tag1", "tag2", "tag3"],
-  "seoScore": 85
+  "article": "Full HTML article content (use <p>, <h2>, <h3>, <ul>, <li>, etc.)",
+  "metaTitle": "SEO title (under 60 characters)",
+  "metaDescription": "Meta description (under 160 characters)",
+  "suggestedTags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "seoScore": 85,
+  "readabilityScore": 70,
+  ${includeFaq ? `"faqSection": [{"question": "Question 1", "answer": "Answer 1"}, {"question": "Question 2", "answer": "Answer 2"}]` : `"faqSection": []`},
+  ${includeToc ? `"tableOfContents": ["Heading 1", "Heading 2", "Heading 3", "Heading 4"]` : `"tableOfContents": []`},
+  ${includeTakeaways ? `"keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]` : `"keyTakeaways": []`}
 }
 
-The SEO score should be 0‑100 based on keyword usage, readability, and structure. Do not include any explanations outside the JSON.`;
+The SEO score should be 0-100 based on keyword usage, readability, and structure. The readability score should be 0-100 (higher is better).`;
 
-  const userPrompt = `Write an SEO article about "${topic}" focusing on keywords: ${keywords}. Tone: ${tone}. Length: about ${wordCount} words.`;
+  const userPrompt = `Write a high-quality SEO article about "${primaryKeyword}" targeting ${targetAudience || 'general readers'} in ${country}. The content should be in ${language} and match ${searchIntent} search intent.`;
 
   const groqApiKey = process.env.GROQ_API_KEY;
-  if (!groqApiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
-  }
+  if (!groqApiKey) return res.status(500).json({ error: 'GROQ_API_KEY not configured' });
 
   const payload = JSON.stringify({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ],
     temperature: 0.7,
-    max_tokens: 2500,
+    max_tokens: 4000,
     response_format: { type: 'json_object' }
   });
 
@@ -176,47 +215,49 @@ The SEO score should be 0‑100 based on keyword usage, readability, and structu
         let raw = '';
         response.on('data', chunk => raw += chunk);
         response.on('end', () => {
-          if (response.statusCode !== 200) {
-            reject(new Error(`Groq API error ${response.statusCode}: ${raw}`));
-            return;
-          }
-          try {
-            resolve(JSON.parse(raw));
-          } catch (e) { reject(new Error('Invalid JSON from Groq')); }
+          if (response.statusCode !== 200) reject(new Error(`Groq API error ${response.statusCode}: ${raw}`));
+          else resolve(JSON.parse(raw));
         });
       });
       request.on('error', reject);
       request.write(payload);
       request.end();
     });
+
     const content = groqResponse.choices[0].message.content;
     const result = JSON.parse(content);
+
+    // Ensure all fields exist
     const finalResult = {
       article: result.article || '<p>Failed to generate article.</p>',
-      metaTitle: result.metaTitle || `${topic} - SEO Writer`,
-      metaDescription: result.metaDescription || `Learn about ${topic} with our SEO-optimized content.`,
+      metaTitle: result.metaTitle || `${primaryKeyword} - SEO Writer`,
+      metaDescription: result.metaDescription || `Learn about ${primaryKeyword} with our SEO-optimized content.`,
       suggestedTags: Array.isArray(result.suggestedTags) ? result.suggestedTags : [],
-      seoScore: typeof result.seoScore === 'number' ? result.seoScore : 70
+      seoScore: typeof result.seoScore === 'number' ? result.seoScore : 70,
+      readabilityScore: typeof result.readabilityScore === 'number' ? result.readabilityScore : 60,
+      faqSection: Array.isArray(result.faqSection) ? result.faqSection : [],
+      tableOfContents: Array.isArray(result.tableOfContents) ? result.tableOfContents : [],
+      keyTakeaways: Array.isArray(result.keyTakeaways) ? result.keyTakeaways : []
     };
 
-    // Save generation to Firestore
+    // ====== SAVE GENERATION TO FIRESTORE ======
     const generationRef = userRef.collection('generations').doc();
     await generationRef.set({
-      topic,
-      keywords,
+      topic: primaryKeyword,
+      keywords: secondaryKeywords,
       tone,
       length,
       generatedAt: new Date().toISOString(),
       result: finalResult
     });
-    // Increment usage counter
+
     await userRef.update({
-      generationsUsedThisMonth: userData.generationsUsedThisMonth + 1
+      generationsUsedThisMonth: admin.firestore.FieldValue.increment(1)
     });
 
     res.status(200).json(finalResult);
   } catch (err) {
     console.error('Groq generation error:', err.message);
-    res.status(500).json({ error: 'AI generation failed' });
+    res.status(500).json({ error: 'AI generation failed: ' + err.message });
   }
 };
