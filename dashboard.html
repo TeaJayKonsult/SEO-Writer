@@ -543,6 +543,30 @@
       color: rgba(250,248,245,0.35);
     }
 
+    /* ====== SEO BREAKDOWN ====== */
+    .seo-breakdown { margin-top: 16px; }
+    .seo-breakdown-details { background: var(--cream); border-radius: var(--radius-md); border: 1px solid var(--light-gray); }
+    .seo-breakdown-details summary { padding: 14px 18px; font-weight: 600; color: var(--teal); cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+    .seo-breakdown-details summary::-webkit-details-marker { display: none; }
+    .seo-breakdown-details summary::before { content: '▶'; font-size: 12px; transition: transform 0.2s; }
+    .seo-breakdown-details[open] summary::before { transform: rotate(90deg); }
+    .breakdown-content { padding: 0 18px 18px; }
+    .breakdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--light-gray); }
+    .breakdown-item:last-child { border-bottom: none; }
+    .breakdown-item.pass .breakdown-label { color: var(--teal); }
+    .breakdown-item.warn .breakdown-label { color: #9C6644; }
+    .breakdown-item.fail .breakdown-label { color: var(--coral); }
+    .breakdown-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+    .breakdown-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--charcoal); }
+    .breakdown-points { font-size: 14px; font-weight: 700; color: var(--charcoal); }
+    .breakdown-message { font-size: 12px; color: var(--warm-gray); padding-left: 34px; margin-bottom: 8px; margin-top: -4px; }
+    .breakdown-total { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; margin-top: 8px; border-top: 2px solid var(--charcoal); font-weight: 700; font-size: 16px; color: var(--charcoal); }
+    .breakdown-suggestions { padding: 0 18px 18px; border-top: 1px solid var(--light-gray); }
+    .breakdown-suggestions h4 { font-size: 14px; color: var(--warm-gray); margin: 14px 0 8px; }
+    .breakdown-suggestions ul { list-style: none; padding: 0; margin: 0; }
+    .breakdown-suggestions li { font-size: 13px; color: var(--warm-gray); padding: 4px 0; padding-left: 24px; position: relative; }
+    .breakdown-suggestions li::before { content: '💡'; position: absolute; left: 0; }
+
     /* ====== MOBILE ====== */
     @media (max-width: 768px) {
       .dashboard-wrapper { flex-direction: column; padding: 16px; }
@@ -602,7 +626,7 @@
     <!-- USER INFO -->
     <div class="user-info">
       <div class="greeting">
-        <h3>Welcome back, <span id="userName">Pastor</span> 👋</h3>
+        <h3>Welcome back, <span id="userName">there</span> 👋</h3>
         <p>Plan: <span id="userPlan">Free</span> · <span id="usageText">0 / 8 generations this month</span></p>
       </div>
       <div class="actions">
@@ -846,6 +870,7 @@
             <div class="readability" id="readabilityScore"></div>
           </div>
           <div id="articleContent"></div>
+          <div id="seoBreakdownGenerate" style="display:none;"></div>
           <div id="faqContainer" style="margin-top:20px; display:none;"><h4>❓ FAQ</h4><div id="faqList"></div></div>
           <div id="tocContainer" style="margin-top:20px; display:none;"><h4>📑 Table of Contents</h4><ul id="tocList"></ul></div>
           <div id="takeawaysContainer" style="margin-top:20px; display:none;"><h4>🎯 Key Takeaways</h4><ul id="takeawaysList"></ul></div>
@@ -871,6 +896,14 @@
           <label>Target Keywords (optional, comma separated)</label>
           <input type="text" id="analyzeKeywords" placeholder="e.g., SEO, content marketing">
         </div>
+        <div class="form-group">
+          <label>Title / Headline</label>
+          <input type="text" id="analyzeTitle" placeholder="e.g., How to Rank #1 on Google in 2026">
+        </div>
+        <div class="form-group">
+          <label>Meta Description</label>
+          <input type="text" id="analyzeMetaDesc" placeholder="Brief description for search results (120-160 chars recommended)">
+        </div>
         <button class="submit-btn" id="analyzeBtn">🔍 Analyze SEO</button>
         <div class="loading" id="analyzeLoading"><div class="spinner"></div><p>Analyzing... (10-20 sec)</p></div>
       </div>
@@ -884,6 +917,7 @@
             <div>Readability: <strong id="readability"></strong></div>
             <div>Headings: H1: <span id="h1Count">0</span>, H2: <span id="h2Count">0</span>, H3: <span id="h3Count">0</span></div>
           </div>
+          <div id="seoBreakdownAnalyze" style="display:none;"></div>
           <h4>💡 Suggestions</h4>
           <ul id="suggestionsList" style="padding-left:20px; color:var(--warm-gray);"></ul>
           <h4 style="margin-top:16px;">🔖 Suggested Meta Tags</h4>
@@ -998,11 +1032,186 @@ let currentUser = null;
 let currentGenerations = [];
 let currentAuditResult = null;
 let currentContent = null;
+let currentPrimaryKeyword = '';
 
 // ====== ESCAPE HTML ======
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+}
+
+// ====== SEO BREAKDOWN HELPERS ======
+function stripHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+function computeKeywordDensity(text, keyword) {
+  if (!keyword || !text) return 0;
+  const plainText = text.toLowerCase();
+  const kw = keyword.toLowerCase().trim();
+  if (!kw) return 0;
+  const words = plainText.split(/\s+/).filter(w => w.length > 0);
+  const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+  const matches = (plainText.match(regex) || []).length;
+  return words.length > 0 ? (matches / words.length) * 100 : 0;
+}
+
+function computeSeoBreakdown(data, options) {
+  const { contentType, primaryKeyword, title, metaDesc, content } = options;
+  const items = [];
+  let totalScore = 0;
+  const plainText = stripHtml(content || '');
+  const wordCount = plainText.split(/\s+/).filter(w => w.length > 0).length;
+
+  // 1. Keyword in Title (15 pts)
+  let titleScore = 0, titleStatus = 'fail', titleMsg = 'Title is missing';
+  if (title && title.trim()) {
+    if (primaryKeyword && title.toLowerCase().includes(primaryKeyword.toLowerCase())) {
+      titleScore = 15; titleStatus = 'pass'; titleMsg = 'Primary keyword found in title';
+    } else if (primaryKeyword) {
+      titleMsg = 'Add primary keyword to your title';
+    } else {
+      titleScore = 15; titleStatus = 'pass'; titleMsg = 'Title is present';
+    }
+  }
+  items.push({ label: 'Keyword in Title', status: titleStatus, points: titleScore, maxPoints: 15, message: titleMsg });
+  totalScore += titleScore;
+
+  // 2. Keyword in First 100 Words (10 pts)
+  let first100Score = 0, first100Status = 'fail', first100Msg = 'Content is empty';
+  if (plainText) {
+    const first100 = plainText.split(/\s+/).slice(0, 100).join(' ');
+    if (primaryKeyword && first100.toLowerCase().includes(primaryKeyword.toLowerCase())) {
+      first100Score = 10; first100Status = 'pass'; first100Msg = 'Keyword appears early in content';
+    } else if (primaryKeyword) {
+      first100Msg = 'Include keyword within first 100 words';
+    } else {
+      first100Score = 10; first100Status = 'pass'; first100Msg = 'Content has strong opening';
+    }
+  }
+  items.push({ label: 'Keyword in First 100 Words', status: first100Status, points: first100Score, maxPoints: 10, message: first100Msg });
+  totalScore += first100Score;
+
+  // 3. Meta Description (10 pts)
+  let metaScore = 0, metaStatus = 'fail', metaMsg = 'Meta description is missing';
+  if (metaDesc && metaDesc.trim()) {
+    const metaLen = metaDesc.trim().length;
+    if (metaLen >= 120 && metaLen <= 160) {
+      metaScore = 10; metaStatus = 'pass'; metaMsg = `Optimal length (${metaLen} chars)`;
+    } else {
+      metaScore = 5; metaStatus = 'warn'; metaMsg = `Length is ${metaLen} chars (aim for 120-160)`;
+    }
+  }
+  items.push({ label: 'Meta Description', status: metaStatus, points: metaScore, maxPoints: 10, message: metaMsg });
+  totalScore += metaScore;
+
+  // 4. Content Length (15 pts)
+  let lenScore = 0, lenStatus = 'fail', lenMsg = 'No content';
+  if (wordCount >= 1500) { lenScore = 15; lenStatus = 'pass'; lenMsg = `${wordCount} words — excellent length`; }
+  else if (wordCount >= 800) { lenScore = 12; lenStatus = 'pass'; lenMsg = `${wordCount} words — good length`; }
+  else if (wordCount >= 400) { lenScore = 6; lenStatus = 'warn'; lenMsg = `${wordCount} words — consider expanding`; }
+  else if (wordCount > 0) { lenMsg = `${wordCount} words — too short for SEO`; }
+  items.push({ label: 'Content Length', status: lenStatus, points: lenScore, maxPoints: 15, message: lenMsg });
+  totalScore += lenScore;
+
+  // 5. Heading Structure (10 pts)
+  const h1Count = (content.match(/<h1/gi) || []).length;
+  const h2Count = (content.match(/<h2/gi) || []).length;
+  const h3Count = (content.match(/<h3/gi) || []).length;
+  // For analyze tab, use API data if available
+  const apiHeadings = data.headings;
+  const finalH1 = apiHeadings ? (apiHeadings.h1 || 0) : h1Count;
+  const finalH2 = apiHeadings ? (apiHeadings.h2 || 0) : h2Count;
+  let headScore = 0, headStatus = 'fail', headMsg = 'No headings found — add H1 and H2s';
+  if (finalH1 === 1 && finalH2 >= 2) { headScore = 10; headStatus = 'pass'; headMsg = `Good structure (1 H1, ${finalH2} H2s)`; }
+  else if (finalH1 >= 1 && finalH2 >= 1) { headScore = 7; headStatus = 'warn'; headMsg = 'Basic structure present'; }
+  else if (finalH1 >= 1 || finalH2 >= 1) { headScore = 4; headStatus = 'warn'; headMsg = 'Improve heading hierarchy'; }
+  items.push({ label: 'Heading Structure', status: headStatus, points: headScore, maxPoints: 10, message: headMsg });
+  totalScore += headScore;
+
+  // 6. Keyword Density (10 pts)
+  let density = 0, densScore = 0, densStatus = 'fail', densMsg = 'No keyword provided';
+  if (primaryKeyword) {
+    density = data.keywordDensity !== undefined ? data.keywordDensity : computeKeywordDensity(plainText, primaryKeyword);
+    if (density >= 1 && density <= 2) { densScore = 10; densStatus = 'pass'; densMsg = `Density: ${density.toFixed(1)}% — optimal`; }
+    else if ((density >= 0.5 && density < 1) || (density > 2 && density <= 3)) { densScore = 6; densStatus = 'warn'; densMsg = `Density: ${density.toFixed(1)}% — needs adjustment`; }
+    else if (density > 0) { densScore = 3; densStatus = 'warn'; densMsg = `Density: ${density.toFixed(1)}% — off target`; }
+    else { densMsg = 'Keyword not found in content'; }
+  }
+  items.push({ label: 'Keyword Density', status: densStatus, points: densScore, maxPoints: 10, message: densMsg });
+  totalScore += densScore;
+
+  // 7. Readability (10 pts)
+  let readScore = 0, readStatus = 'fail', readMsg = 'Readability data unavailable';
+  const readability = data.readabilityScore !== undefined ? data.readabilityScore : data.readability;
+  if (typeof readability === 'number') {
+    if (readability >= 60) { readScore = 10; readStatus = 'pass'; readMsg = `Score: ${readability} — easy to read`; }
+    else if (readability >= 40) { readScore = 6; readStatus = 'warn'; readMsg = `Score: ${readability} — moderate`; }
+    else { readMsg = `Score: ${readability} — difficult`; }
+  } else if (typeof readability === 'string') {
+    const rLower = readability.toLowerCase();
+    if (rLower.includes('good') || rLower.includes('easy') || rLower.includes('excellent')) { readScore = 10; readStatus = 'pass'; readMsg = `${readability} — good readability`; }
+    else if (rLower.includes('moderate') || rLower.includes('fair') || rLower.includes('average')) { readScore = 6; readStatus = 'warn'; readMsg = `${readability} — could be improved`; }
+    else { readMsg = `${readability} — needs improvement`; }
+  }
+  items.push({ label: 'Readability', status: readStatus, points: readScore, maxPoints: 10, message: readMsg });
+  totalScore += readScore;
+
+  // 8. FAQ Section (10 pts) — generate only
+  if (contentType === 'generate') {
+    const hasFaq = data.faqSection && data.faqSection.length > 0;
+    if (hasFaq) { items.push({ label: 'FAQ Section', status: 'pass', points: 10, maxPoints: 10, message: `${data.faqSection.length} questions included` }); totalScore += 10; }
+    else { items.push({ label: 'FAQ Section', status: 'fail', points: 0, maxPoints: 10, message: 'Enable FAQ for better SEO' }); }
+  }
+
+  // 9. Table of Contents (10 pts) — generate only
+  if (contentType === 'generate') {
+    const hasToc = data.tableOfContents && data.tableOfContents.length > 0;
+    if (hasToc) { items.push({ label: 'Table of Contents', status: 'pass', points: 10, maxPoints: 10, message: 'TOC included' }); totalScore += 10; }
+    else { items.push({ label: 'Table of Contents', status: 'fail', points: 0, maxPoints: 10, message: 'Enable TOC for better structure' }); }
+  }
+
+  const maxScore = contentType === 'generate' ? 100 : 80;
+  return { items, totalScore, maxScore };
+}
+
+function renderSeoBreakdown(breakdown, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const { items, totalScore, maxScore } = breakdown;
+  const iconMap = { pass: '✅', warn: '⚠️', fail: '❌' };
+  const itemsHtml = items.map(item => `
+    <div class="breakdown-item ${item.status}">
+      <span class="breakdown-icon">${iconMap[item.status]}</span>
+      <span class="breakdown-label">${item.label}</span>
+      <span class="breakdown-points">${item.points > 0 ? '+' : ''}${item.points}/${item.maxPoints}</span>
+    </div>
+    <div class="breakdown-message">${item.message}</div>
+  `).join('');
+  container.innerHTML = `
+    <details class="seo-breakdown-details">
+      <summary>📊 SEO Score Breakdown</summary>
+      <div class="breakdown-content">
+        ${itemsHtml}
+        <div class="breakdown-total">
+          <span>Calculated Score</span>
+          <span class="breakdown-score">${totalScore}/${maxScore}</span>
+        </div>
+      </div>
+      <div class="breakdown-suggestions">
+        <h4>💡 Before Publishing on Your Blog</h4>
+        <ul>
+          <li>Add descriptive alt text to all images</li>
+          <li>Add 2–3 internal links to related articles</li>
+          <li>Add 1–2 external links to authoritative sources</li>
+          <li>Optimize your URL slug with the primary keyword</li>
+        </ul>
+      </div>
+    </details>
+  `;
+  container.style.display = 'block';
 }
 
 // ====== TOAST ======
@@ -1018,22 +1227,42 @@ function showToast(msg) {
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     currentUser = user;
-    const doc = await db.collection('users').doc(user.uid).get();
+    const userRef = db.collection('users').doc(user.uid);
+    const doc = await userRef.get();
+    let data = doc.exists ? doc.data() : null;
+
+    // Resolve display name with priority and Pastor guard
+    let resolvedName = 'there';
+    if (data && data.firstName && data.firstName.trim() && data.firstName.trim() !== 'Pastor') {
+      resolvedName = data.firstName.trim();
+    } else if (data && data.name && data.name.trim() && data.name.trim() !== 'Pastor') {
+      resolvedName = data.name.trim();
+    } else if (user.displayName && user.displayName.trim() && user.displayName.trim() !== 'Pastor') {
+      resolvedName = user.displayName.trim();
+    } else if (user.email) {
+      resolvedName = user.email.split('@')[0];
+    }
+
+    document.getElementById('userName').textContent = resolvedName;
+
     if (doc.exists) {
-      const data = doc.data();
       document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro' : 'Free';
       const used = data.generationsUsedThisMonth || 0;
       const limit = data.plan === 'pro' ? 25 : 8;
       document.getElementById('usageText').textContent = `${used} / ${limit} generations this month`;
-      document.getElementById('userName').textContent = data.name || 'Pastor';
     } else {
-      await db.collection('users').doc(user.uid).set({
+      const newProfile = {
         email: user.email,
         plan: 'free',
         generationsUsedThisMonth: 0,
         monthlyResetDate: new Date().toISOString(),
         createdAt: new Date().toISOString()
-      });
+      };
+      if (resolvedName !== 'there') {
+        newProfile.firstName = resolvedName;
+        newProfile.name = resolvedName;
+      }
+      await userRef.set(newProfile);
     }
     loadHistory();
   } else {
@@ -1178,14 +1407,17 @@ document.getElementById('generateBtn').addEventListener('click', async function(
   if (contentType === 'blog') {
     const pk = document.getElementById('primaryKeyword').value.trim();
     if (!pk) { showToast('Please enter a primary keyword.'); return; }
+    currentPrimaryKeyword = pk;
     payload = { ...payload, primaryKeyword: pk, secondaryKeywords: document.getElementById('secondaryKeywords').value.trim(), blogTitle: document.getElementById('blogTitle').value.trim(), targetAudience: document.getElementById('targetAudience').value.trim(), country: document.getElementById('country').value, language: document.getElementById('language').value, searchIntent: document.getElementById('searchIntent').value, authorName: document.getElementById('authorName').value.trim(), authorCredentials: document.getElementById('authorCredentials').value.trim(), length: document.getElementById('length').value, tone: document.getElementById('tone').value, readingLevel: document.getElementById('readingLevel').value, seoTitle: document.getElementById('seoTitle').value.trim(), metaDescription: document.getElementById('metaDescription').value.trim(), includeFaq: document.getElementById('includeFaq').checked, includeToc: document.getElementById('includeToc').checked, includeTakeaways: document.getElementById('includeTakeaways').checked, eeatMode: document.getElementById('eeatMode').checked, humanizationMode: document.getElementById('humanizationMode').checked };
   } else if (contentType === 'facebook') {
     const topic = document.getElementById('fbTopic').value.trim();
     if (!topic) { showToast('Please enter a topic/hook.'); return; }
+    currentPrimaryKeyword = topic;
     payload = { ...payload, topic, audience: document.getElementById('fbAudience').value.trim(), cta: document.getElementById('fbCta').value.trim(), hashtags: document.getElementById('fbHashtags').value.trim(), tone: document.getElementById('fbTone').value, length: document.getElementById('fbLength').value };
   } else if (contentType === 'linkedin') {
     const topic = document.getElementById('liTopic').value.trim();
     if (!topic) { showToast('Please enter a topic/headline.'); return; }
+    currentPrimaryKeyword = topic;
     payload = { ...payload, topic, audience: document.getElementById('liAudience').value.trim(), cta: document.getElementById('liCta').value.trim(), industry: document.getElementById('liIndustry').value.trim(), tone: document.getElementById('liTone').value, length: document.getElementById('liLength').value };
   }
   const loading = document.getElementById('loading');
@@ -1208,6 +1440,18 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     document.getElementById('articleContent').innerHTML = data.article || '<p>No content available.</p>';
     document.getElementById('readabilityScore').textContent = data.readabilityScore ? `📖 Readability Score: ${data.readabilityScore}` : '';
     displayAdvancedSections(data);
+    if (contentType === 'blog') {
+      const genBreakdown = computeSeoBreakdown(data, {
+        contentType: 'generate',
+        primaryKeyword: currentPrimaryKeyword,
+        title: data.metaTitle || '',
+        metaDesc: data.metaDescription || '',
+        content: data.article || ''
+      });
+      renderSeoBreakdown(genBreakdown, 'seoBreakdownGenerate');
+    } else {
+      document.getElementById('seoBreakdownGenerate').style.display = 'none';
+    }
     resultCard.style.display = 'block';
     loadHistory();
     const userDoc = await db.collection('users').doc(currentUser.uid).get();
@@ -1254,6 +1498,16 @@ document.getElementById('analyzeBtn').addEventListener('click', async function()
     document.getElementById('suggestedDesc').textContent = data.metaDescription || 'N/A';
     document.getElementById('relatedKeywords').innerHTML = (data.relatedKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
     document.getElementById('subKeywords').innerHTML = (data.subKeywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('');
+    const analyzeKeywords = document.getElementById('analyzeKeywords').value.trim();
+    const primaryKeyword = analyzeKeywords ? analyzeKeywords.split(',')[0].trim() : '';
+    const analyzeBreakdown = computeSeoBreakdown(data, {
+      contentType: 'analyze',
+      primaryKeyword: primaryKeyword,
+      title: document.getElementById('analyzeTitle').value.trim(),
+      metaDesc: document.getElementById('analyzeMetaDesc').value.trim(),
+      content: document.getElementById('analyzeContent').value.trim()
+    });
+    renderSeoBreakdown(analyzeBreakdown, 'seoBreakdownAnalyze');
     result.style.display = 'block';
   } catch (err) {
     showToast('❌ ' + err.message);

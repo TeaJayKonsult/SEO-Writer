@@ -1156,6 +1156,10 @@
     <!-- SIGN UP -->
     <form id="modalSignupForm" class="hidden">
       <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="modalSignupFirstName" placeholder="e.g., Ada" required>
+      </div>
+      <div class="form-group">
         <label>Email</label>
         <input type="email" id="modalSignupEmail" placeholder="you@example.com" required>
       </div>
@@ -1218,6 +1222,7 @@ const signinEmail = document.getElementById('modalSigninEmail');
 const signinPassword = document.getElementById('modalSigninPassword');
 const signupEmail = document.getElementById('modalSignupEmail');
 const signupPassword = document.getElementById('modalSignupPassword');
+const signupFirstName = document.getElementById('modalSignupFirstName');
 const signinMessage = document.getElementById('modalSigninMessage');
 const signupMessage = document.getElementById('modalSignupMessage');
 
@@ -1326,6 +1331,7 @@ signinForm.addEventListener('submit', async (e) => {
 signupForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   signupMessage.textContent = '';
+  const firstName = signupFirstName.value.trim();
   const email = signupEmail.value.trim();
   const password = signupPassword.value;
   if (password.length < 6) {
@@ -1337,6 +1343,8 @@ signupForm.addEventListener('submit', async (e) => {
     const userCred = await auth.createUserWithEmailAndPassword(email, password);
     await db.collection('users').doc(userCred.user.uid).set({
       email: email,
+      firstName: firstName,
+      name: firstName,
       plan: 'free',
       generationsUsedThisMonth: 0,
       monthlyResetDate: new Date().toISOString(),
