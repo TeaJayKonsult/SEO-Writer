@@ -970,6 +970,7 @@
       margin-bottom: 12px;
       opacity: 0;
       transform: translateY(10px);
+      transition: all 0.3s ease;
     }
     .demo-field label {
       display: block;
@@ -1013,16 +1014,28 @@
       cursor: pointer;
       opacity: 0;
       transform: scale(0.95);
+      transition: all 0.3s ease;
       position: relative;
       z-index: 1;
     }
-    .demo-btn .btn-text { display: inline-block; }
-    .demo-btn .btn-click { display: none; }
+    .demo-btn .btn-text { display: inline-block; transition: opacity 0.15s; }
+    .demo-btn .btn-click {
+      display: inline-block;
+      opacity: 0;
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: opacity 0.15s;
+    }
 
     .demo-loading {
-      display: none;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
       text-align: center;
-      padding: 20px 0;
+      padding: 0;
+      transition: all 0.3s ease;
       position: relative;
       z-index: 1;
     }
@@ -1038,7 +1051,10 @@
     .demo-loading p { font-size: 13px; color: var(--warm-gray); }
 
     .demo-result {
-      display: none;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: all 0.5s ease;
       position: relative;
       z-index: 1;
     }
@@ -1071,6 +1087,7 @@
       background: conic-gradient(var(--teal) 0deg 0deg, var(--light-gray) 0deg);
       display: flex; align-items: center; justify-content: center;
       position: relative;
+      transition: background 1.5s ease;
     }
     .demo-score-ring::before {
       content: '';
@@ -1103,10 +1120,13 @@
     .demo-article-preview p { margin-bottom: 8px; }
 
     .demo-breakdown {
-      display: none;
-      margin-top: 16px;
-      border-top: 1px solid var(--light-gray);
-      padding-top: 16px;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      margin-top: 0;
+      border-top: 1px solid transparent;
+      padding-top: 0;
+      transition: all 0.4s ease;
     }
     .demo-breakdown h4 {
       font-size: 14px;
@@ -1122,6 +1142,7 @@
       font-size: 13px;
       opacity: 0;
       transform: translateX(-10px);
+      transition: all 0.3s ease;
     }
     .demo-break-icon { font-size: 14px; width: 20px; text-align: center; }
     .demo-break-label { flex: 1; color: var(--charcoal); }
@@ -1136,76 +1157,131 @@
       font-size: 14px;
       color: var(--charcoal);
       opacity: 0;
+      transform: translateX(-10px);
+      transition: all 0.3s ease;
     }
 
-    /* ====== ANIMATION KEYFRAMES ====== */
-    @keyframes demoFadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* ====== PLAYING STATE ====== */
+    .demo-card.playing .demo-field {
+      opacity: 1;
+      transform: translateY(0);
     }
-    @keyframes demoScaleIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    .demo-card.playing .demo-field:nth-child(1) { transition-delay: 0ms; }
+    .demo-card.playing .demo-field:nth-child(2) { transition-delay: 400ms; }
+    .demo-card.playing .demo-field:nth-child(3) { transition-delay: 800ms; }
+    .demo-card.playing .demo-field:nth-child(4) { transition-delay: 1200ms; }
+
+    .demo-card.playing .demo-btn {
+      opacity: 1;
+      transform: scale(1);
+      transition-delay: 1800ms;
     }
-    @keyframes demoSlideIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to { opacity: 1; transform: translateX(0); }
+    .demo-card.playing .demo-btn .btn-text {
+      opacity: 1;
+      animation: btnTextSwap 2.6s ease 2400ms forwards;
     }
-    @keyframes demoRingFill {
-      from { background: conic-gradient(var(--teal) 0deg 0deg, var(--light-gray) 0deg); }
-      to { background: conic-gradient(var(--teal) 0deg 331deg, var(--light-gray) 331deg); }
+    @keyframes btnTextSwap {
+      0%, 92% { opacity: 1; }
+      93%, 100% { opacity: 0; }
     }
-    @keyframes demoFadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
+    .demo-card.playing .demo-btn .btn-click {
+      opacity: 0;
+      animation: btnClickShow 2.6s ease 2400ms forwards;
+    }
+    @keyframes btnClickShow {
+      0%, 92% { opacity: 1; }
+      93%, 100% { opacity: 0; }
     }
 
-    /* ====== ANIMATION SEQUENCE (20s loop) ====== */
-    .demo-card.running .demo-field:nth-child(1) { animation: demoFadeInUp 0.5s ease forwards, demoFadeOut 0.5s ease 18s forwards; }
-    .demo-card.running .demo-field:nth-child(2) { animation: demoFadeInUp 0.5s ease 0.4s forwards, demoFadeOut 0.5s ease 18s forwards; }
-    .demo-card.running .demo-field:nth-child(3) { animation: demoFadeInUp 0.5s ease 0.8s forwards, demoFadeOut 0.5s ease 18s forwards; }
-    .demo-card.running .demo-field:nth-child(4) { animation: demoFadeInUp 0.5s ease 1.2s forwards, demoFadeOut 0.5s ease 18s forwards; }
-    .demo-card.running .demo-btn { animation: demoScaleIn 0.4s ease 1.8s forwards, demoFadeOut 0.5s ease 18s forwards; }
-    .demo-card.running .demo-btn .btn-text { animation: demoFadeOut 0.1s ease 2.4s forwards; }
-    .demo-card.running .demo-btn .btn-click { display: inline-block; animation: demoFadeInUp 0.1s ease 2.4s forwards, demoFadeOut 0.1s ease 2.6s forwards; }
-    .demo-card.running .demo-loading {
-      display: block;
-      animation: demoFadeInUp 0.3s ease 2.6s forwards, demoFadeOut 0.5s ease 5.5s forwards;
+    .demo-card.playing .demo-loading {
+      max-height: 200px;
+      opacity: 1;
+      padding: 20px 0;
+      transition-delay: 2600ms;
     }
-    .demo-card.running .demo-result {
-      display: block;
-      animation: demoFadeInUp 0.6s ease 5.5s forwards, demoFadeOut 0.5s ease 18s forwards;
+    .demo-card.playing .demo-loading.hide {
+      max-height: 0;
+      opacity: 0;
+      padding: 0;
+      transition-delay: 0ms;
+      transition-duration: 0.4s;
     }
-    .demo-card.running .demo-score-ring {
-      animation: demoRingFill 1.5s ease 6s forwards;
-    }
-    .demo-card.running .demo-breakdown {
-      display: block;
-      animation: demoFadeInUp 0.5s ease 8s forwards, demoFadeOut 0.5s ease 18s forwards;
-    }
-    .demo-card.running .demo-break-item:nth-child(1) { animation: demoSlideIn 0.3s ease 8.2s forwards; }
-    .demo-card.running .demo-break-item:nth-child(2) { animation: demoSlideIn 0.3s ease 8.5s forwards; }
-    .demo-card.running .demo-break-item:nth-child(3) { animation: demoSlideIn 0.3s ease 8.8s forwards; }
-    .demo-card.running .demo-break-item:nth-child(4) { animation: demoSlideIn 0.3s ease 9.1s forwards; }
-    .demo-card.running .demo-break-item:nth-child(5) { animation: demoSlideIn 0.3s ease 9.4s forwards; }
-    .demo-card.running .demo-break-item:nth-child(6) { animation: demoSlideIn 0.3s ease 9.7s forwards; }
-    .demo-card.running .demo-break-item:nth-child(7) { animation: demoSlideIn 0.3s ease 10.0s forwards; }
-    .demo-card.running .demo-break-item:nth-child(8) { animation: demoSlideIn 0.3s ease 10.3s forwards; }
-    .demo-card.running .demo-break-item:nth-child(9) { animation: demoSlideIn 0.3s ease 10.6s forwards; }
-    .demo-card.running .demo-break-total { animation: demoSlideIn 0.3s ease 11s forwards; }
 
-    /* Loop the entire card */
-    .demo-card.running {
-      animation: demoCardLoop 20s ease infinite;
+    .demo-card.playing .demo-result {
+      max-height: 2000px;
+      opacity: 1;
+      transition-delay: 5500ms;
     }
-    @keyframes demoCardLoop {
-      0%, 90% { opacity: 1; }
-      95%, 100% { opacity: 0; }
+    .demo-card.playing .demo-score-ring {
+      background: conic-gradient(var(--teal) 0deg 331deg, var(--light-gray) 331deg);
+      transition-delay: 6000ms;
+    }
+
+    .demo-card.playing .demo-breakdown {
+      max-height: 1000px;
+      opacity: 1;
+      margin-top: 16px;
+      border-top-color: var(--light-gray);
+      padding-top: 16px;
+      transition-delay: 8000ms;
+    }
+    .demo-card.playing .demo-break-item {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .demo-card.playing .demo-break-item:nth-child(1) { transition-delay: 8200ms; }
+    .demo-card.playing .demo-break-item:nth-child(2) { transition-delay: 8500ms; }
+    .demo-card.playing .demo-break-item:nth-child(3) { transition-delay: 8800ms; }
+    .demo-card.playing .demo-break-item:nth-child(4) { transition-delay: 9100ms; }
+    .demo-card.playing .demo-break-item:nth-child(5) { transition-delay: 9400ms; }
+    .demo-card.playing .demo-break-item:nth-child(6) { transition-delay: 9700ms; }
+    .demo-card.playing .demo-break-item:nth-child(7) { transition-delay: 10000ms; }
+    .demo-card.playing .demo-break-item:nth-child(8) { transition-delay: 10300ms; }
+    .demo-card.playing .demo-break-item:nth-child(9) { transition-delay: 10600ms; }
+
+    .demo-card.playing .demo-break-total {
+      opacity: 1;
+      transform: translateX(0);
+      transition-delay: 11000ms;
+    }
+
+    /* Replay button */
+    .demo-replay {
+      text-align: center;
+      margin-top: 20px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .demo-replay.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .demo-replay-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .demo-replay-btn:hover {
+      background: var(--teal-light);
+      transform: translateY(-1px);
     }
 
     @media (max-width: 900px) {
       .demo-card { max-width: 100%; }
     }
+
+
   </style>
 </head>
 <body>
@@ -1281,7 +1357,7 @@
 
 <!-- ====== LIVE DEMO ====== -->
 <section class="demo-section">
-  <div class="demo-card running">
+  <div class="demo-card" id="demoCard">
     <div class="demo-header">
       <h3>✍️ Create Content</h3>
       <span class="demo-badge">Live Demo</span>
@@ -1312,7 +1388,7 @@
     </div>
 
     <!-- Loading -->
-    <div class="demo-loading">
+    <div class="demo-loading" id="demoLoading">
       <div class="spinner"></div>
       <p>Generating... please wait</p>
     </div>
@@ -1391,6 +1467,13 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Replay Button -->
+  <div class="demo-replay" id="demoReplay">
+    <button class="demo-replay-btn" onclick="playDemo()">
+      <span>▶️</span> Replay Demo
+    </button>
   </div>
 </section>
 
@@ -1813,6 +1896,43 @@ document.querySelectorAll('.feature-card, .step').forEach(el => {
   el.style.transition = 'all 0.6s ease';
   observer.observe(el);
 });
+
+// ====== DEMO ANIMATION ======
+function playDemo() {
+  const card = document.getElementById('demoCard');
+  const replay = document.getElementById('demoReplay');
+  const loading = document.getElementById('demoLoading');
+  if (!card) return;
+
+  // Hide replay button
+  replay.classList.remove('show');
+
+  // Remove playing class to reset everything
+  card.classList.remove('playing');
+  if (loading) loading.classList.remove('hide');
+
+  // Force reflow so the browser registers the reset
+  void card.offsetWidth;
+
+  // Start playing
+  card.classList.add('playing');
+
+  // Hide loading spinner after it plays (at ~5.5s)
+  setTimeout(() => {
+    if (loading) loading.classList.add('hide');
+  }, 5500);
+
+  // Show replay button after full animation (~13s)
+  setTimeout(() => {
+    replay.classList.add('show');
+  }, 13000);
+}
+window.playDemo = playDemo;
+
+// Auto-play demo on page load after a short delay
+setTimeout(() => {
+  playDemo();
+}, 1200);
 </script>
 </body>
 </html>
